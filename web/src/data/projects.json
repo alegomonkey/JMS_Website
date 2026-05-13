@@ -1,0 +1,16 @@
+[
+  {
+    "slug": "jms-website",
+    "name": "JMS Website",
+    "description": "This site. React + Express + SQLite, served behind Nginx in Docker.",
+    "repoUrl": "https://github.com/jsylvain/JMS_Website",
+    "tags": ["react", "typescript", "nginx", "docker"]
+  },
+  {
+    "slug": "sample-project",
+    "name": "Sample Project",
+    "description": "Replace this entry in web/src/data/projects.json with one of your own repositories.",
+    "repoUrl": "https://github.com/jsylvain/sample",
+    "tags": ["example"]
+  }
+]
