@@ -9,7 +9,8 @@ RUN npm run build
 # Stage 2: nginx serves the built bundle
 FROM nginx:1.27-alpine
 RUN apk add --no-cache gettext
-COPY nginx/nginx.conf.template /etc/nginx/templates/default.conf.template
+COPY nginx/nginx.conf.template /etc/nginx/conf-templates/default.full.conf.template
+COPY nginx/nginx.http.conf.template /etc/nginx/conf-templates/default.http.conf.template
 COPY nginx/entrypoint.sh /docker-entrypoint.d/40-render-conf.sh
 RUN chmod +x /docker-entrypoint.d/40-render-conf.sh
 COPY --from=web-build /web/dist /usr/share/nginx/html
