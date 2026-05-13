@@ -1,0 +1,48 @@
+.hero {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 1.5rem;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.heroImage {
+  width: 220px;
+  height: 220px;
+  background: linear-gradient(135deg, var(--dark), var(--bright));
+  border: 1px solid var(--border);
+}
+
+.linkTree {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  max-width: 360px;
+}
+
+.linkTree li a {
+  display: block;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--border);
+  background: var(--muted);
+}
+
+.linkTree li a:hover {
+  border-color: var(--bright);
+  text-decoration: none;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.8rem;
+}
+
+.card {
+  border: 1px solid var(--border);
+  background: var(--muted);
+  padding: 0.8rem 1rem;
+}

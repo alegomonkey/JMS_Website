@@ -1,0 +1,39 @@
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.8rem;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--border);
+  background: var(--muted);
+}
+
+.body p {
+  margin: 0.3rem 0 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.meta {
+  display: flex;
+  gap: 0.6rem;
+  font-size: 0.8em;
+  color: var(--bright);
+}
+
+.user {
+  font-weight: bold;
+}
+
+.empty {
+  color: var(--bright);
+  margin: 1rem 0;
+}

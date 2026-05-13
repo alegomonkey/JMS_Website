@@ -1,0 +1,29 @@
+.card {
+  border: 1px solid var(--border);
+  padding: 1rem;
+  background: var(--muted);
+}
+
+.card:hover {
+  border-color: var(--bright);
+}
+
+.desc {
+  margin: 0.4rem 0 0.8rem;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tags {
+  list-style: none;
+  display: flex;
+  gap: 0.5rem;
+  padding: 0;
+  margin: 0;
+  color: var(--bright);
+  font-size: 0.85em;
+}

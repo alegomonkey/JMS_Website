@@ -1,0 +1,37 @@
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.toggle input[type="checkbox"] {
+  appearance: none;
+  width: 2.4rem;
+  height: 1.2rem;
+  background: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  position: relative;
+  cursor: pointer;
+}
+
+.toggle input[type="checkbox"]::before {
+  content: "";
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  width: 1rem;
+  height: 1rem;
+  background: var(--bright);
+  border-radius: 50%;
+  transition: transform 0.15s ease;
+}
+
+.toggle input[type="checkbox"]:checked::before {
+  transform: translateX(1.2rem);
+}
+
+.actions {
+  display: flex;
+  gap: 0.8rem;
+}

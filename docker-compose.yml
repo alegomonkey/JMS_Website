@@ -1,0 +1,55 @@
+services:
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      SESSION_SECRET: ${SESSION_SECRET:?SESSION_SECRET must be set}
+      DOMAIN: ${DOMAIN:-localhost}
+      API_PORT: ${API_PORT:-3000}
+      DB_PATH: /data/jms.db
+    volumes:
+      - api_data:/data
+    expose:
+      - "3000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  web:
+    build:
+      context: .
+      dockerfile: nginx/Dockerfile
+    depends_on:
+      - api
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN:-localhost}
+    volumes:
+      - letsencrypt:/etc/letsencrypt
+      - certbot_webroot:/var/www/certbot
+    restart: unless-stopped
+
+  certbot:
+    image: certbot/certbot:latest
+    profiles: ["certbot"]
+    volumes:
+      - letsencrypt:/etc/letsencrypt
+      - certbot_webroot:/var/www/certbot
+    entrypoint: >
+      sh -c "certbot certonly --webroot -w /var/www/certbot
+      --email ${LETSENCRYPT_EMAIL}
+      -d ${DOMAIN}
+      --agree-tos --no-eff-email --non-interactive --keep-until-expiring"
+
+volumes:
+  api_data:
+  letsencrypt:
+  certbot_webroot:

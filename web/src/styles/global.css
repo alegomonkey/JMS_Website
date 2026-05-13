@@ -1,0 +1,82 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: ui-monospace, "JetBrains Mono", "Fira Code", Menlo, Consolas, "Courier New", monospace;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+a {
+  color: var(--bright);
+  text-decoration: none;
+}
+
+a:hover,
+a:focus-visible {
+  text-decoration: underline;
+  outline: none;
+}
+
+button {
+  font-family: inherit;
+  font-size: inherit;
+  color: var(--fg);
+  background: var(--muted);
+  border: 1px solid var(--border);
+  padding: 0.4rem 0.8rem;
+  cursor: pointer;
+}
+
+button:hover {
+  border-color: var(--bright);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+input,
+textarea {
+  font-family: inherit;
+  font-size: inherit;
+  color: var(--fg);
+  background: var(--muted);
+  border: 1px solid var(--border);
+  padding: 0.5rem;
+  width: 100%;
+}
+
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--bright);
+  outline-offset: 1px;
+}
+
+h1, h2, h3 {
+  color: var(--bright);
+  margin: 0 0 0.6rem;
+}
+
+.app-shell {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  min-height: 100%;
+}
+
+.app-main {
+  padding: 2rem 2.5rem;
+  max-width: 960px;
+}
