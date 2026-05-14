@@ -7,10 +7,45 @@
     "tags": ["react", "typescript", "nginx", "docker"]
   },
   {
-    "slug": "sample-project",
-    "name": "Sample Project",
-    "description": "Replace this entry in web/src/data/projects.json with one of your own repositories.",
-    "repoUrl": "https://github.com/jsylvain/sample",
-    "tags": ["example"]
+    "slug": "gaming-imbd-documentation",
+    "name": "Gaming-IMBD-Documentation",
+    "description": "Team Fike's documentation for the UMaine Computer Science Capstone Project.",
+    "repoUrl": "https://github.com/UMaine-Fike/Gaming-IMBD-Documentation",
+    "tags": ["documentation", "capstone", "umaine"]
+  },
+  {
+    "slug": "digital-forest-kg-ux",
+    "name": "DigitalForestKG_UX",
+    "description": "Scripts and UI for the Digital Forest Knowledge Graph Project. Forked from theSKAILab/DigitalForestKG.",
+    "repoUrl": "https://github.com/JWLorenzo/DigitalForestKG_UX",
+    "tags": ["javascript", "knowledge-graph", "ux"]
+  },
+  {
+    "slug": "lesson-agent",
+    "name": "LessonAgent",
+    "description": "Agentic project.",
+    "repoUrl": "https://github.com/JWLorenzo/LessonAgent",
+    "tags": ["typescript", "agents"]
+  },
+  {
+    "slug": "franco-code",
+    "name": "Franco-Code",
+    "description": "Web scraping and sanitization.",
+    "repoUrl": "https://github.com/JWLorenzo/Franco-Code",
+    "tags": ["python", "scraping"]
+  },
+  {
+    "slug": "cos-498-598-project-group-3",
+    "name": "COS_498_598_Project_GROUP_3",
+    "description": "Minimizing language with emojis.",
+    "repoUrl": "https://github.com/JWLorenzo/COS_498_598_Project_GROUP_3",
+    "tags": ["python", "nlp"]
+  },
+  {
+    "slug": "webserver-final",
+    "name": "WebserverFinal",
+    "description": "Server-side web development — Wild West Forum.",
+    "repoUrl": "https://github.com/JWLorenzo/WebserverFinal",
+    "tags": ["javascript", "web"]
   }
 ]

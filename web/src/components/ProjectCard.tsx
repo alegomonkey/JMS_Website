@@ -2,11 +2,19 @@ import { Link } from "react-router-dom";
 import type { Project } from "../lib/projects";
 import styles from "./ProjectCard.module.css";
 
-export function ProjectCard({ project }: { project: Project }): JSX.Element {
+export function ProjectCard({
+  project,
+  linkState,
+}: {
+  project: Project;
+  linkState?: unknown;
+}): JSX.Element {
   return (
     <article className={styles.card}>
       <h3>
-        <Link to={`/projects/${project.slug}`}>{project.name}</Link>
+        <Link to={`/projects/${project.slug}`} state={linkState}>
+          {project.name}
+        </Link>
       </h3>
       <p className={styles.desc}>{project.description}</p>
       <div className={styles.row}>

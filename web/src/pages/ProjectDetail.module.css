@@ -1,3 +1,28 @@
+.back {
+  display: inline-block;
+  margin-bottom: 1rem;
+  color: var(--bright);
+  border: 1px solid var(--border);
+  padding: 0.3rem 0.6rem;
+  background: var(--muted);
+}
+
+.back:hover {
+  border-color: var(--bright);
+  text-decoration: none;
+}
+
+.tags {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0;
+  margin: 0 0 0.8rem;
+  color: var(--bright);
+  font-size: 0.85em;
+}
+
 .head {
   display: flex;
   align-items: center;

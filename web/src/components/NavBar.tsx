@@ -14,8 +14,8 @@ export function NavBar(): JSX.Element {
           </NavLink>
         </li>
         <li>
-          <NavLink to="/cv" className={linkClass}>
-            CV
+          <NavLink to="/projects" className={linkClass}>
+            Projects
           </NavLink>
         </li>
       </ul>

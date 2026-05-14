@@ -1,0 +1,111 @@
+.intro {
+  color: var(--fg);
+  margin: 0 0 1rem;
+}
+
+.count {
+  color: var(--bright);
+  font-size: 0.9em;
+  margin: 0.4rem 0 1rem;
+}
+
+.combobox {
+  position: relative;
+  margin-bottom: 0.6rem;
+}
+
+.options {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 5;
+  list-style: none;
+  margin: 0.2rem 0 0;
+  padding: 0;
+  background: var(--muted);
+  border: 1px solid var(--border);
+  max-height: 14rem;
+  overflow-y: auto;
+}
+
+.option {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  padding: 0.4rem 0.6rem;
+  color: var(--fg);
+  cursor: pointer;
+}
+
+.option:hover {
+  background: var(--dark);
+  color: var(--bright);
+}
+
+.optionEmpty {
+  padding: 0.4rem 0.6rem;
+  color: var(--fg);
+  opacity: 0.7;
+}
+
+.chips {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0;
+  margin: 0 0 0.6rem;
+  align-items: center;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--bright);
+  border: 1px solid var(--border);
+  background: var(--muted);
+  padding: 0.15rem 0.5rem;
+  font-size: 0.85em;
+}
+
+.chipRemove {
+  background: transparent;
+  border: none;
+  color: var(--bright);
+  padding: 0 0.15rem;
+  font-size: 1em;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.chipRemove:hover {
+  color: var(--fg);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 0.8rem;
+}
+
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  margin-top: 1.2rem;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.6rem;
+  color: var(--bright);
+  border: 1px dashed var(--border);
+  padding: 0.8rem 1rem;
+}

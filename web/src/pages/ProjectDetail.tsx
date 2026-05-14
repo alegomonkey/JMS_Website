@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useLocation, useParams } from "react-router-dom";
 import { findProject } from "../lib/projects";
 import { fetchComments, type Comment, type Sort } from "../lib/comments";
 import { CommentList } from "../components/CommentList";
@@ -11,10 +11,17 @@ export function ProjectDetail(): JSX.Element {
   const { slug = "" } = useParams<{ slug: string }>();
   const project = findProject(slug);
   const { user } = useAuth();
+  const location = useLocation();
   const [sort, setSort] = useState<Sort>("top");
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const from =
+    typeof (location.state as { from?: unknown } | null)?.from === "string"
+      ? ((location.state as { from: string }).from)
+      : "";
+  const backHref = `/projects${from}`;
 
   const load = useCallback(async (): Promise<void> => {
     setLoading(true);
@@ -50,6 +57,9 @@ export function ProjectDetail(): JSX.Element {
   if (!project) {
     return (
       <div>
+        <Link to={backHref} className={styles.back}>
+          ← Back to projects
+        </Link>
         <h1>Not found</h1>
         <p>No project named {slug}.</p>
       </div>
@@ -58,7 +68,15 @@ export function ProjectDetail(): JSX.Element {
 
   return (
     <div>
+      <Link to={backHref} className={styles.back}>
+        ← Back to projects
+      </Link>
       <h1>{project.name}</h1>
+      <ul className={styles.tags}>
+        {project.tags.map((t) => (
+          <li key={t}>#{t}</li>
+        ))}
+      </ul>
       <p>{project.description}</p>
       <p>
         <a href={project.repoUrl} target="_blank" rel="noreferrer noopener">

@@ -2,7 +2,7 @@ import { Route, Routes } from "react-router-dom";
 import { NavBar } from "./components/NavBar";
 import { AuthProvider } from "./lib/auth";
 import { Landing } from "./pages/Landing";
-import { CV } from "./pages/CV";
+import { Projects } from "./pages/Projects";
 import { ProjectDetail } from "./pages/ProjectDetail";
 import { Settings } from "./pages/Settings";
 import { SignIn } from "./pages/SignIn";
@@ -16,7 +16,7 @@ export function App(): JSX.Element {
         <main className="app-main">
           <Routes>
             <Route path="/" element={<Landing />} />
-            <Route path="/cv" element={<CV />} />
+            <Route path="/projects" element={<Projects />} />
             <Route path="/projects/:slug" element={<ProjectDetail />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/signin" element={<SignIn />} />

@@ -21,6 +21,7 @@
   flex-direction: column;
   gap: 0.4rem;
   max-width: 360px;
+  margin-bottom: 2rem;
 }
 
 .linkTree li a {
@@ -45,4 +46,12 @@
   border: 1px solid var(--border);
   background: var(--muted);
   padding: 0.8rem 1rem;
+}
+
+.resumeEmbed {
+  display: block;
+  width: 100%;
+  aspect-ratio: 8.5 / 11;
+  border: 1px solid var(--border);
+  background: var(--muted);
 }
