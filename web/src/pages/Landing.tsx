@@ -15,12 +15,9 @@ export function Landing(): JSX.Element {
   return (
     <div>
       <section className={styles.hero}>
-        <div
-          className={styles.heroImage}
-          role="img"
-          aria-label="Decorative hero pattern"
-        />
+        <div className={styles.heroImage}>
           <img src="/hero.jpg" alt="Johnny Sylvain reading a book outdoors." />
+        </div>
         <div>
           <h1>John Sylvain</h1>
           <p>

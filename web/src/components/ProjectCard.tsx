@@ -16,7 +16,7 @@ export function ProjectCard({
           {project.name}
         </Link>
       </h3>
-      <p className={styles.desc}>{project.description}</p>
+      <p className={styles.desc}>{project.overview}</p>
       <div className={styles.row}>
         <a href={project.repoUrl} target="_blank" rel="noreferrer noopener">
           repo

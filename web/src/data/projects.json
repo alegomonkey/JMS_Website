@@ -2,50 +2,64 @@
   {
     "slug": "jms-website",
     "name": "JMS Website",
-    "description": "This site. React + Express + SQLite, served behind Nginx in Docker.",
-    "repoUrl": "https://github.com/jsylvain/JMS_Website",
-    "tags": ["react", "typescript", "nginx", "docker"]
+    "overview": "This site. React + TypeScript front end, Express + SQLite API, Nginx reverse proxy, all containerized with Docker. Hosts a hero/CV landing page, a paginated projects page with tag filters, and per-project threaded comments behind sign-in.",
+    "contributions": "Sole author. Built the full stack, wrote the Docker and Nginx setup, and authored the projects-page refactor that introduced pagination and tag filters.",
+    "documentation": "See the README in the repo for stack details, repository layout, and local-development instructions.",
+    "repoUrl": "https://github.com/alegomonkey/JMS_Website",
+    "tags": ["react", "typescript", "express", "sqlite", "docker", "nginx", "fullstack"]
   },
   {
     "slug": "gaming-imbd-documentation",
     "name": "Gaming-IMBD-Documentation",
-    "description": "Team Fike's documentation for the UMaine Computer Science Capstone Project.",
+    "overview": "Team Fike's UMaine Computer Science capstone project: a documentation-only repository preserving the planning, design, and process artifacts for a video-game preservation system. The implementation code held Activision IP and remained private, so only the design documents are public.",
+    "contributions": "Contributed to the team's design artifacts alongside other Team Fike members — critical design review, system requirements specification, and software design document.",
+    "documentation": "See the README in the repo for links to the Critical Design Review, System Requirements Specification, and Software Design Document.",
     "repoUrl": "https://github.com/UMaine-Fike/Gaming-IMBD-Documentation",
     "tags": ["documentation", "capstone", "umaine"]
   },
   {
     "slug": "digital-forest-kg-ux",
     "name": "DigitalForestKG_UX",
-    "description": "Scripts and UI for the Digital Forest Knowledge Graph Project. Forked from theSKAILab/DigitalForestKG.",
+    "overview": "Scripts and UI for the Digital Forest Knowledge Graph project — a research effort under the SKAI Lab to model forest-related data as a queryable knowledge graph. This fork carries the UX-focused work; the upstream lives at theSKAILab/DigitalForestKG.",
+    "contributions": "Team contributor. Worked on the front-end UI and the data-loading scripts that feed the graph. The project was led by daniel-lawrence under the SKAI Lab.",
+    "documentation": "See the README in this fork; upstream context lives at theSKAILab/DigitalForestKG.",
     "repoUrl": "https://github.com/JWLorenzo/DigitalForestKG_UX",
-    "tags": ["javascript", "knowledge-graph", "ux"]
+    "tags": ["javascript", "python", "knowledge-graph", "ux"]
   },
   {
     "slug": "lesson-agent",
     "name": "LessonAgent",
-    "description": "Agentic project.",
-    "repoUrl": "https://github.com/JWLorenzo/LessonAgent",
-    "tags": ["typescript", "agents"]
+    "overview": "AssignmentAlly: a web app that helps students design augmented coursework assignments connected to career goals, then format them into a formal proposal for a professor to approve.",
+    "contributions": "Co-author on a small team. Contributed to the agent flow, the UI, and the Docker setup.",
+    "documentation": "See the README in the repo for setup, prerequisites, project structure, and a walkthrough for running the app locally.",
+    "repoUrl": "https://github.com/alegomonkey/LessonAgent",
+    "tags": ["typescript", "agents", "docker", "education"]
   },
   {
     "slug": "franco-code",
     "name": "Franco-Code",
-    "description": "Web scraping and sanitization.",
-    "repoUrl": "https://github.com/JWLorenzo/Franco-Code",
+    "overview": "Web scraping and sanitization toolchain for the Franco-American Bibliography project. Migrates published-work records from francolibrary.com to francolibrary.org, normalizes the data, and handles geolocation lookups.",
+    "contributions": "Sole author. Built the scrapers, the sanitization pipeline, and the Jupyter notebooks used to validate the migrated data.",
+    "documentation": "See the README in the repo for a file-by-file breakdown of the pipeline. The live destination of the migrated data is francolibrary.org.",
+    "repoUrl": "https://github.com/alegomonkey/Franco-Code",
     "tags": ["python", "scraping"]
   },
   {
     "slug": "cos-498-598-project-group-3",
     "name": "COS_498_598_Project_GROUP_3",
-    "description": "Minimizing language with emojis.",
+    "overview": "UMaine COS 498/598 NLP course project (Group 3): augments natural-language sentences with semantically appropriate emojis by comparing sentence-transformer embeddings against per-emoji centroid vectors.",
+    "contributions": "Group 3 team member. Contributed to the embedding pipeline and the centroid-matching logic.",
+    "documentation": "See the README in the repo for environment setup, GPU acceleration notes, the spaCy model dependency, and the pipeline execution steps.",
     "repoUrl": "https://github.com/JWLorenzo/COS_498_598_Project_GROUP_3",
-    "tags": ["python", "nlp"]
+    "tags": ["python", "nlp", "umaine"]
   },
   {
     "slug": "webserver-final",
     "name": "WebserverFinal",
-    "description": "Server-side web development — Wild West Forum.",
-    "repoUrl": "https://github.com/JWLorenzo/WebserverFinal",
-    "tags": ["javascript", "web"]
+    "overview": "Wild West Forum: a server-side web-development final project. Full-stack themed forum with threaded posts, user accounts, and a SQLite store. The repo also contains the midterm and final video demos.",
+    "contributions": "Sole author. Designed the schema, built the Handlebars-rendered views and the Express routes, and recorded the demo videos.",
+    "documentation": "See the README in the repo for project metadata and setup; the bundled video demos walk through the feature set.",
+    "repoUrl": "https://github.com/alegomonkey/WebserverFinal",
+    "tags": ["javascript", "web", "forum", "sqlite"]
   }
 ]

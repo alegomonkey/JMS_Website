@@ -77,7 +77,18 @@ export function ProjectDetail(): JSX.Element {
           <li key={t}>#{t}</li>
         ))}
       </ul>
-      <p>{project.description}</p>
+      <section>
+        <h2>Overview</h2>
+        <p>{project.overview}</p>
+      </section>
+      <section>
+        <h2>My contributions</h2>
+        <p>{project.contributions}</p>
+      </section>
+      <section>
+        <h2>Documentation</h2>
+        <p>{project.documentation}</p>
+      </section>
       <p>
         <a href={project.repoUrl} target="_blank" rel="noreferrer noopener">
           {project.repoUrl}

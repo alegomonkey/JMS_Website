@@ -3,7 +3,9 @@ import data from "../data/projects.json";
 export interface Project {
   slug: string;
   name: string;
-  description: string;
+  overview: string;
+  contributions: string;
+  documentation: string;
   repoUrl: string;
   tags: string[];
 }
