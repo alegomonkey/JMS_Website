@@ -15,16 +15,16 @@
     "contributions": "Contributed to the team's design artifacts alongside other Team Fike members — critical design review, system requirements specification, and software design document.",
     "documentation": "See the README in the repo for links to the Critical Design Review, System Requirements Specification, and Software Design Document.",
     "repoUrl": "https://github.com/UMaine-Fike/Gaming-IMBD-Documentation",
-    "tags": ["documentation", "capstone", "umaine"]
+    "tags": ["documentation", "capstone", "umaine", "react", "docker", "fullstack"]
   },
   {
     "slug": "digital-forest-kg-ux",
     "name": "DigitalForestKG_UX",
     "overview": "Scripts and UI for the Digital Forest Knowledge Graph project — a research effort under the SKAI Lab to model forest-related data as a queryable knowledge graph. This fork carries the UX-focused work; the upstream lives at theSKAILab/DigitalForestKG.",
     "contributions": "Team contributor. Worked on the front-end UI and the data-loading scripts that feed the graph. The project was led by daniel-lawrence under the SKAI Lab.",
-    "documentation": "See the README in this fork; upstream context lives at theSKAILab/DigitalForestKG.",
+    "documentation": "See the README in this fork; Our work is accessible with FLASK_TEMPLATES=templates_dev.",
     "repoUrl": "https://github.com/JWLorenzo/DigitalForestKG_UX",
-    "tags": ["javascript", "python", "knowledge-graph", "ux"]
+    "tags": ["javascript", "python", "knowledge-graph", "ux", "flask"]
   },
   {
     "slug": "lesson-agent",
@@ -49,7 +49,7 @@
     "name": "COS_498_598_Project_GROUP_3",
     "overview": "UMaine COS 498/598 NLP course project (Group 3): augments natural-language sentences with semantically appropriate emojis by comparing sentence-transformer embeddings against per-emoji centroid vectors.",
     "contributions": "Group 3 team member. Contributed to the embedding pipeline and the centroid-matching logic.",
-    "documentation": "See the README in the repo for environment setup, GPU acceleration notes, the spaCy model dependency, and the pipeline execution steps.",
+    "documentation": "MinimizingLanguageWithEmojis_Group3.pdf is a research report on the project. See the README in the repo for environment setup, GPU acceleration notes, the spaCy model dependency, and the pipeline execution steps.",
     "repoUrl": "https://github.com/JWLorenzo/COS_498_598_Project_GROUP_3",
     "tags": ["python", "nlp", "umaine"]
   },

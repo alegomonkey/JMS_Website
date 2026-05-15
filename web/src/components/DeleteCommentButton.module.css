@@ -2,7 +2,7 @@
   font-size: 0.75em;
   padding: 0.1rem 0.4rem;
   background: transparent;
-  border: 1px solid var(--border);
+  border: 0.0625rem solid var(--border);
   color: var(--fg);
 }
 

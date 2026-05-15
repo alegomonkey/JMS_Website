@@ -1,16 +1,18 @@
 .hero {
   display: grid;
-  grid-template-columns: 220px 1fr;
+  grid-template-columns: 13.75rem 1fr;
   gap: 1.5rem;
   align-items: center;
   margin-bottom: 2rem;
 }
 
 .heroImage {
-  width: 220px;
-  height: 220px;
+  width: 13.75rem;
+  height: 13.75rem;
+  padding: 0.625rem;
+  box-sizing: border-box;
   background: linear-gradient(135deg, var(--dark), var(--bright));
-  border: 1px solid var(--border);
+  border: 0.0625rem solid var(--border);
   overflow: hidden;
 }
 
@@ -28,14 +30,14 @@
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
-  max-width: 360px;
+  max-width: 22.5rem;
   margin-bottom: 2rem;
 }
 
 .linkTree li a {
   display: block;
   padding: 0.6rem 0.8rem;
-  border: 1px solid var(--border);
+  border: 0.0625rem solid var(--border);
   background: var(--muted);
 }
 
@@ -46,12 +48,12 @@
 
 .cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(13.75rem, 1fr));
   gap: 0.8rem;
 }
 
 .card {
-  border: 1px solid var(--border);
+  border: 0.0625rem solid var(--border);
   background: var(--muted);
   padding: 0.8rem 1rem;
 }
@@ -60,6 +62,6 @@
   display: block;
   width: 100%;
   aspect-ratio: 8.5 / 11;
-  border: 1px solid var(--border);
+  border: 0.0625rem solid var(--border);
   background: var(--muted);
 }

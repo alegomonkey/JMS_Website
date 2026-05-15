@@ -2,7 +2,7 @@
   display: inline-block;
   margin-bottom: 1rem;
   color: var(--bright);
-  border: 1px solid var(--border);
+  border: 0.0625rem solid var(--border);
   padding: 0.3rem 0.6rem;
   background: var(--muted);
 }
@@ -42,6 +42,6 @@
 
 .signedOut {
   color: var(--bright);
-  border: 1px dashed var(--border);
+  border: 0.0625rem dashed var(--border);
   padding: 0.6rem 0.8rem;
 }

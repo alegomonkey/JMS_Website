@@ -14,7 +14,7 @@ body {
   background: var(--bg);
   color: var(--fg);
   font-family: ui-monospace, "JetBrains Mono", "Fira Code", Menlo, Consolas, "Courier New", monospace;
-  font-size: 15px;
+  font-size: 0.9375rem;
   line-height: 1.5;
 }
 
@@ -34,7 +34,7 @@ button {
   font-size: inherit;
   color: var(--fg);
   background: var(--muted);
-  border: 1px solid var(--border);
+  border: 0.0625rem solid var(--border);
   padding: 0.4rem 0.8rem;
   cursor: pointer;
 }
@@ -54,15 +54,15 @@ textarea {
   font-size: inherit;
   color: var(--fg);
   background: var(--muted);
-  border: 1px solid var(--border);
+  border: 0.0625rem solid var(--border);
   padding: 0.5rem;
   width: 100%;
 }
 
 input:focus-visible,
 textarea:focus-visible {
-  outline: 2px solid var(--bright);
-  outline-offset: 1px;
+  outline: 0.125rem solid var(--bright);
+  outline-offset: 0.0625rem;
 }
 
 h1, h2, h3 {
@@ -72,11 +72,11 @@ h1, h2, h3 {
 
 .app-shell {
   display: grid;
-  grid-template-columns: 220px 1fr;
+  grid-template-columns: 13.75rem 1fr;
   min-height: 100%;
 }
 
 .app-main {
   padding: 2rem 2.5rem;
-  max-width: 960px;
+  max-width: 60rem;
 }
