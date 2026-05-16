@@ -5,7 +5,7 @@
   --bright: #79bde8;
   --dark: #082e58;
   --muted: #1a1a1a;
-  --border: #2a2a2a;
+  --border: #5a5a5a;
 }
 
 [data-theme="light"] {
@@ -14,5 +14,13 @@
   --bright: #082e58;
   --dark: #79bde8;
   --muted: #f3f3f3;
-  --border: #d4d4d4;
+  --border: #767676;
+}
+
+:root {
+  /* Breakpoints (informational — CSS @media rules use raw rem values that
+     match these so designers can find the source of truth in one place). */
+  --bp-mobile: 48rem;  /* 768px */
+  --bp-tablet: 64rem;  /* 1024px */
+  --target-min: 2.75rem; /* 44px — WCAG 2.5.5 enhanced target size */
 }

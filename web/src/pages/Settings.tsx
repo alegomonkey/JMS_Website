@@ -1,9 +1,11 @@
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/auth";
 import { useTheme } from "../theme/ThemeProvider";
+import { useDocumentTitle } from "../lib/useDocumentTitle";
 import styles from "./Settings.module.css";
 
 export function Settings(): JSX.Element {
+  useDocumentTitle("Settings — JMS");
   const { theme, toggle } = useTheme();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
@@ -19,23 +21,24 @@ export function Settings(): JSX.Element {
     <div>
       <h1>Settings</h1>
 
-      <section>
-        <h2>Theme</h2>
+      <section aria-labelledby="theme-heading">
+        <h2 id="theme-heading">Theme</h2>
         <label className={styles.toggle}>
-          <span>Dark</span>
+          <span aria-hidden="true">Dark</span>
           <input
             type="checkbox"
             role="switch"
-            aria-label="Toggle light mode"
+            aria-label="Use light mode"
+            aria-checked={isLight}
             checked={isLight}
             onChange={toggle}
           />
-          <span>Light</span>
+          <span aria-hidden="true">Light</span>
         </label>
       </section>
 
-      <section>
-        <h2>Account</h2>
+      <section aria-labelledby="account-heading">
+        <h2 id="account-heading">Account</h2>
         {user ? (
           <div>
             <p>

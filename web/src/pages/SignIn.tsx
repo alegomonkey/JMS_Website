@@ -1,14 +1,17 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/auth";
+import { useDocumentTitle } from "../lib/useDocumentTitle";
 
 export function SignIn(): JSX.Element {
+  useDocumentTitle("Sign in — JMS");
   const { signIn } = useAuth();
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const errorId = "signin-error";
 
   async function submit(e: React.FormEvent): Promise<void> {
     e.preventDefault();
@@ -27,7 +30,7 @@ export function SignIn(): JSX.Element {
   return (
     <div>
       <h1>Sign in</h1>
-      <form onSubmit={submit}>
+      <form onSubmit={submit} aria-describedby={error ? errorId : undefined}>
         <label htmlFor="username">Username</label>
         <input
           id="username"
@@ -36,6 +39,8 @@ export function SignIn(): JSX.Element {
           onChange={(e) => setUsername(e.target.value)}
           disabled={busy}
           required
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? errorId : undefined}
         />
         <label htmlFor="password">Password</label>
         <input
@@ -46,8 +51,14 @@ export function SignIn(): JSX.Element {
           onChange={(e) => setPassword(e.target.value)}
           disabled={busy}
           required
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? errorId : undefined}
         />
-        {error && <p role="alert">{error}</p>}
+        {error && (
+          <p id={errorId} role="alert">
+            {error}
+          </p>
+        )}
         <button type="submit" disabled={busy}>
           Sign in
         </button>

@@ -1,12 +1,14 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useSearchParams } from "react-router-dom";
 import { ProjectCard } from "../components/ProjectCard";
 import { listAllTags, listProjects } from "../lib/projects";
+import { useDocumentTitle } from "../lib/useDocumentTitle";
 import styles from "./Projects.module.css";
 
 const PAGE_SIZE = 6;
 
 export function Projects(): JSX.Element {
+  useDocumentTitle("Projects — JMS");
   const allProjects = useMemo(() => listProjects(), []);
   const allTags = useMemo(() => listAllTags(), []);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -77,7 +79,7 @@ export function Projects(): JSX.Element {
                 onClick={() => removeTag(t)}
                 className={styles.chipRemove}
               >
-                ×
+                <span aria-hidden="true">×</span>
               </button>
             </li>
           ))}
@@ -87,11 +89,11 @@ export function Projects(): JSX.Element {
         </ul>
       )}
 
-      {activeTags.length > 0 && (
-        <p className={styles.count}>
-          Showing {filtered.length} of {allProjects.length} projects.
-        </p>
-      )}
+      <p className={styles.count} aria-live="polite">
+        {activeTags.length > 0
+          ? `Showing ${filtered.length} of ${allProjects.length} projects.`
+          : ""}
+      </p>
 
       {filtered.length === 0 ? (
         <div className={styles.empty}>
@@ -116,16 +118,18 @@ export function Projects(): JSX.Element {
             type="button"
             onClick={() => goToPage(currentPage - 1)}
             disabled={currentPage <= 1}
+            aria-label="Previous page"
           >
             ‹ Prev
           </button>
-          <span>
+          <span aria-live="polite">
             Page {currentPage} of {totalPages}
           </span>
           <button
             type="button"
             onClick={() => goToPage(currentPage + 1)}
             disabled={currentPage >= totalPages}
+            aria-label="Next page"
           >
             Next ›
           </button>
@@ -144,7 +148,11 @@ interface TagComboboxProps {
 function TagCombobox({ allTags, activeTags, onSelect }: TagComboboxProps): JSX.Element {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState<number>(-1);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const listboxId = "tag-options";
+  const optionId = useCallback((tag: string): string => `tag-option-${tag}`, []);
 
   const available = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -156,51 +164,127 @@ function TagCombobox({ allTags, activeTags, onSelect }: TagComboboxProps): JSX.E
   useEffect(() => {
     function onDocClick(e: MouseEvent): void {
       if (!containerRef.current) return;
-      if (!containerRef.current.contains(e.target as Node)) setOpen(false);
+      if (!containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+        setActiveIndex(-1);
+      }
     }
     document.addEventListener("mousedown", onDocClick);
     return () => document.removeEventListener("mousedown", onDocClick);
   }, []);
 
+  // Reset active index when option list changes.
+  useEffect(() => {
+    if (available.length === 0) setActiveIndex(-1);
+    else if (activeIndex >= available.length) setActiveIndex(available.length - 1);
+  }, [available, activeIndex]);
+
   function handleSelect(tag: string): void {
     onSelect(tag);
     setQuery("");
     setOpen(false);
+    setActiveIndex(-1);
+    inputRef.current?.focus();
   }
+
+  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>): void {
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      if (!open) {
+        setOpen(true);
+        setActiveIndex(0);
+      } else if (available.length > 0) {
+        setActiveIndex((i) => (i + 1) % available.length);
+      }
+      return;
+    }
+    if (e.key === "ArrowUp") {
+      e.preventDefault();
+      if (!open) {
+        setOpen(true);
+        setActiveIndex(Math.max(0, available.length - 1));
+      } else if (available.length > 0) {
+        setActiveIndex((i) => (i <= 0 ? available.length - 1 : i - 1));
+      }
+      return;
+    }
+    if (e.key === "Home" && open && available.length > 0) {
+      e.preventDefault();
+      setActiveIndex(0);
+      return;
+    }
+    if (e.key === "End" && open && available.length > 0) {
+      e.preventDefault();
+      setActiveIndex(available.length - 1);
+      return;
+    }
+    if (e.key === "Enter" && open && activeIndex >= 0 && activeIndex < available.length) {
+      e.preventDefault();
+      handleSelect(available[activeIndex]!);
+      return;
+    }
+    if (e.key === "Escape" && open) {
+      e.preventDefault();
+      setOpen(false);
+      setActiveIndex(-1);
+      return;
+    }
+  }
+
+  const activeDescendant =
+    open && activeIndex >= 0 && activeIndex < available.length
+      ? optionId(available[activeIndex]!)
+      : undefined;
 
   return (
     <div className={styles.combobox} ref={containerRef}>
+      <label htmlFor="tag-filter" className={styles.srOnly}>
+        Filter projects by tag
+      </label>
       <input
+        id="tag-filter"
+        ref={inputRef}
         type="text"
         role="combobox"
         aria-expanded={open}
-        aria-controls="tag-options"
+        aria-controls={listboxId}
         aria-autocomplete="list"
+        aria-activedescendant={activeDescendant}
         placeholder="Filter by tag…"
         value={query}
         onFocus={() => setOpen(true)}
         onChange={(e) => {
           setQuery(e.target.value);
           setOpen(true);
+          setActiveIndex(e.target.value ? 0 : -1);
         }}
+        onKeyDown={handleKeyDown}
       />
       {open && available.length > 0 && (
-        <ul id="tag-options" role="listbox" className={styles.options}>
-          {available.map((t) => (
-            <li key={t} role="option" aria-selected={false}>
-              <button
-                type="button"
-                className={styles.option}
-                onClick={() => handleSelect(t)}
+        <ul id={listboxId} role="listbox" className={styles.options}>
+          {available.map((t, idx) => {
+            const isActive = idx === activeIndex;
+            return (
+              <li
+                key={t}
+                id={optionId(t)}
+                role="option"
+                aria-selected={isActive}
+                className={`${styles.option} ${isActive ? styles.optionActive : ""}`}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  handleSelect(t);
+                }}
+                onMouseEnter={() => setActiveIndex(idx)}
               >
                 #{t}
-              </button>
-            </li>
-          ))}
+              </li>
+            );
+          })}
         </ul>
       )}
-      {open && available.length === 0 && (
-        <ul className={styles.options} aria-live="polite">
+      {open && available.length === 0 && query.trim() !== "" && (
+        <ul id={listboxId} role="listbox" className={styles.options} aria-live="polite">
           <li className={styles.optionEmpty}>No matching tags.</li>
         </ul>
       )}

@@ -5,6 +5,7 @@ import { fetchComments, type Comment, type Sort } from "../lib/comments";
 import { CommentList } from "../components/CommentList";
 import { CommentForm } from "../components/CommentForm";
 import { useAuth } from "../lib/auth";
+import { useDocumentTitle } from "../lib/useDocumentTitle";
 import styles from "./ProjectDetail.module.css";
 
 export function ProjectDetail(): JSX.Element {
@@ -16,6 +17,7 @@ export function ProjectDetail(): JSX.Element {
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  useDocumentTitle(project ? `${project.name} — JMS` : "Project not found — JMS");
 
   const from =
     typeof (location.state as { from?: unknown } | null)?.from === "string"
@@ -128,7 +130,7 @@ export function ProjectDetail(): JSX.Element {
 
         {error && <p role="alert">{error}</p>}
         {loading ? (
-          <p>Loading...</p>
+          <p role="status" aria-live="polite">Loading comments…</p>
         ) : (
           <CommentList
             comments={comments}

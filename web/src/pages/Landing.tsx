@@ -1,3 +1,4 @@
+import { useDocumentTitle } from "../lib/useDocumentTitle";
 import styles from "./Landing.module.css";
 
 const links = [
@@ -12,14 +13,15 @@ const contacts = [
 ];
 
 export function Landing(): JSX.Element {
+  useDocumentTitle("Home — JMS");
   return (
     <div>
-      <section className={styles.hero}>
+      <section className={styles.hero} aria-labelledby="hero-heading">
         <div className={styles.heroImage}>
           <img src="/hero.jpg" alt="Johnny Sylvain reading a book outdoors." />
         </div>
         <div>
-          <h1>John Sylvain</h1>
+          <h1 id="hero-heading">John Sylvain</h1>
           <p>
             Personal site. Notes, projects, and a CV. Built with React, Express,
             SQLite, and Nginx, all wrapped in Docker.

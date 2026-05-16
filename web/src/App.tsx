@@ -7,13 +7,17 @@ import { ProjectDetail } from "./pages/ProjectDetail";
 import { Settings } from "./pages/Settings";
 import { SignIn } from "./pages/SignIn";
 import { Register } from "./pages/Register";
+import { useDocumentTitle } from "./lib/useDocumentTitle";
 
 export function App(): JSX.Element {
   return (
     <AuthProvider>
+      <a className="skip-link" href="#main">
+        Skip to content
+      </a>
       <div className="app-shell">
         <NavBar />
-        <main className="app-main">
+        <main className="app-main" id="main" tabIndex={-1}>
           <Routes>
             <Route path="/" element={<Landing />} />
             <Route path="/projects" element={<Projects />} />
@@ -30,6 +34,7 @@ export function App(): JSX.Element {
 }
 
 function NotFound(): JSX.Element {
+  useDocumentTitle("Not found — JMS");
   return (
     <div>
       <h1>Not found</h1>

@@ -4,6 +4,21 @@
   background: var(--muted);
 }
 
+.cardTitle {
+  font-size: 1.05rem;
+  margin: 0;
+}
+
+.cardTitle a {
+  text-decoration: none;
+  color: var(--bright);
+}
+
+.cardTitle a:hover,
+.cardTitle a:focus-visible {
+  text-decoration: underline;
+}
+
 .card:hover {
   border-color: var(--bright);
 }
