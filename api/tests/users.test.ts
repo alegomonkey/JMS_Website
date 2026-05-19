@@ -28,6 +28,7 @@ describe("user profile and bio routes", () => {
     expect(res.body.user.username).toBe("grace");
     expect(res.body.user.bio).toBe("");
     expect(res.body.bestTimes).toEqual({ "5": null, "20": null, "100": null });
+    expect(res.body.bestDaily).toEqual({ "5": null, "20": null, "100": null });
   });
 
   it("lets a user update their own bio and rejects empty body shape", async () => {

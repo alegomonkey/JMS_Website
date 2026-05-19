@@ -2,12 +2,17 @@
   display: inline-flex;
   align-items: center;
   gap: 0.6rem;
+  min-height: 2.75rem;
 }
 
 .toggle input[type="checkbox"] {
   appearance: none;
   width: 2.75rem;
   height: 1.5rem;
+  /* Override the global input min-height (2.75rem WCAG target) so the toggle
+     track matches its explicit height; the surrounding label keeps the tap
+     target. */
+  min-height: 1.5rem;
   background: var(--muted);
   border: 0.0625rem solid var(--border);
   border-radius: 1rem;

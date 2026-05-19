@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../lib/auth";
 import { usePrefs } from "../../lib/prefs";
 import { useDocumentTitle } from "../../lib/useDocumentTitle";
-import type { RoundCount } from "../../lib/cribbageApi";
+import { fetchDaily, type RoundCount } from "../../lib/cribbageApi";
+import { DailyCountdown } from "../../components/DailyCountdown";
 import styles from "./CribbageStart.module.css";
 
 const ROUNDS: RoundCount[] = [5, 20, 100];
@@ -15,8 +16,33 @@ export function CribbageStart(): JSX.Element {
   const [rounds, setRounds] = useState<RoundCount>(5);
   const navigate = useNavigate();
 
-  function start(): void {
-    navigate(`/cribbage/play?rounds=${rounds}`);
+  const [playedToday, setPlayedToday] = useState<Record<RoundCount, boolean | null>>({
+    5: null,
+    20: null,
+    100: null,
+  });
+
+  const refreshDailyStatus = useCallback(async () => {
+    try {
+      const results = await Promise.all(ROUNDS.map((n) => fetchDaily(n)));
+      const next: Record<RoundCount, boolean> = { 5: false, 20: false, 100: false };
+      for (const r of results) next[r.round_count] = r.played;
+      setPlayedToday(next);
+    } catch {
+      setPlayedToday({ 5: false, 20: false, 100: false });
+    }
+  }, []);
+
+  useEffect(() => {
+    void refreshDailyStatus();
+  }, [refreshDailyStatus]);
+
+  function startFreePlay(): void {
+    navigate(`/cribbage/play?rounds=${rounds}&mode=freeplay`);
+  }
+
+  function startDaily(n: RoundCount): void {
+    navigate(`/cribbage/play?rounds=${n}&mode=daily`);
   }
 
   return (
@@ -34,8 +60,16 @@ export function CribbageStart(): JSX.Element {
       <p>
         Each round deals four cards to your hand and one cut card. Enter the
         total cribbage points the hand is worth and press Enter. Wrong answers
-        keep the same hand on screen and count as a mistake — you cannot move
-        on until the answer is correct.
+        keep the same hand on screen and <strong>cost a life</strong> — you have{" "}
+        <strong>three lives</strong> per run; lose them all and the game ends
+        immediately.
+      </p>
+      <p>
+        Cards are dealt from a single freshly-shuffled 52-card deck. Hands are
+        always five unique cards (4 hand + cut), but in longer games the deck
+        runs out — when it does, we reshuffle a fresh full deck and keep
+        dealing. So in a 20- or 100-hand run the same card can appear in
+        different hands, just never within the same hand.
       </p>
       <p>
         You are <strong>not the dealer</strong> in this game, so a cut Jack
@@ -43,8 +77,42 @@ export function CribbageStart(): JSX.Element {
         score one point ("nobs") when the cut shares their suit.
       </p>
 
-      <section aria-labelledby="rounds-heading">
-        <h2 id="rounds-heading">Choose a length</h2>
+      <section aria-labelledby="daily-heading" className={styles.dailySection}>
+        <header className={styles.dailyHeader}>
+          <h2 id="daily-heading">Today's daily challenge</h2>
+          <DailyCountdown onRollover={refreshDailyStatus} />
+        </header>
+        <p className={styles.dailyHint}>
+          Everyone plays the same hands today. First attempt of the day at each
+          length locks in your result.
+        </p>
+        <div className={styles.dailyButtons}>
+          {ROUNDS.map((n) => {
+            const played = playedToday[n];
+            return (
+              <button
+                key={n}
+                type="button"
+                onClick={() => startDaily(n)}
+                disabled={played === true}
+                aria-describedby={`daily-${n}-status`}
+              >
+                Play daily {n}
+                <span id={`daily-${n}-status`} className={styles.dailyStatus}>
+                  {played === null ? "" : played ? "already played" : "available"}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      <section aria-labelledby="freeplay-heading" className={styles.freeplaySection}>
+        <h2 id="freeplay-heading">Free play</h2>
+        <p className={styles.dailyHint}>
+          Unlimited practice. Free-play games save to your profile history but
+          don't appear on the public leaderboard.
+        </p>
         <div role="radiogroup" aria-label="Number of hands" className={styles.rounds}>
           {ROUNDS.map((n) => (
             <button
@@ -59,6 +127,9 @@ export function CribbageStart(): JSX.Element {
             </button>
           ))}
         </div>
+        <button type="button" onClick={startFreePlay} className={styles.start}>
+          Start {rounds}-hand free-play game
+        </button>
       </section>
 
       <section aria-labelledby="osk-heading" className={styles.oskSection}>
@@ -68,7 +139,7 @@ export function CribbageStart(): JSX.Element {
           <input
             type="checkbox"
             role="switch"
-            aria-label="Show on-screen number keyboard"
+            aria-label="Show on-screen number keyboard (desktop only — mobile always uses it)"
             aria-checked={onScreenKeyboard}
             checked={onScreenKeyboard}
             onChange={(e) => setOnScreenKeyboard(e.target.checked)}
@@ -76,14 +147,12 @@ export function CribbageStart(): JSX.Element {
           <span>On</span>
         </label>
         <p className={styles.hint}>
-          When on, a number pad appears under the input. Default is off. The
-          same setting lives on the <Link to="/settings">Settings</Link> page.
+          When on, a number pad appears under the input on desktop. On mobile
+          the on-screen pad is always shown (the native keyboard is locked out)
+          so this toggle only affects desktop. The same setting lives on the{" "}
+          <Link to="/settings">Settings</Link> page.
         </p>
       </section>
-
-      <button type="button" onClick={start} className={styles.start}>
-        Start {rounds}-hand game
-      </button>
 
       <nav aria-label="Cribbage navigation" className={styles.nav}>
         <Link to="/cribbage/help">How scoring works</Link>

@@ -1,7 +1,12 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useDocumentTitle } from "../../lib/useDocumentTitle";
-import { fetchLeaderboard, type LeaderboardEntry, type RoundCount } from "../../lib/cribbageApi";
+import {
+  fetchDailyLeaderboard,
+  type LeaderboardEntry,
+  type RoundCount,
+} from "../../lib/cribbageApi";
+import { DailyCountdown } from "../../components/DailyCountdown";
 import styles from "./CribbageRecords.module.css";
 
 const ROUNDS: RoundCount[] = [5, 20, 100];
@@ -17,36 +22,40 @@ function formatMs(ms: number): string {
 export function CribbageRecords(): JSX.Element {
   useDocumentTitle("Cribbage records — JMS");
   const [tab, setTab] = useState<RoundCount>(5);
+  const [date, setDate] = useState<string>("");
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
+  const load = useCallback(async (round: RoundCount) => {
     setLoading(true);
     setError(null);
-    fetchLeaderboard(tab)
-      .then((rows) => {
-        if (!cancelled) setEntries(rows);
-      })
-      .catch((err: unknown) => {
-        if (!cancelled) setError(err instanceof Error ? err.message : "failed to load");
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [tab]);
+    try {
+      const { date: d, entries: rows } = await fetchDailyLeaderboard(round);
+      setDate(d);
+      setEntries(rows);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "failed to load");
+      setEntries([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void load(tab);
+  }, [tab, load]);
 
   return (
     <div>
       <p>
         <Link to="/cribbage">← Back to start</Link>
       </p>
-      <h1>Records</h1>
-      <p>Best times per round length, across all players.</p>
+      <header className={styles.header}>
+        <h1>Today's daily records</h1>
+        <DailyCountdown onRollover={() => void load(tab)} />
+      </header>
+      <p>Best times for {date || "today"}'s seeded daily challenge.</p>
 
       <div role="tablist" aria-label="Hand count" className={styles.tabs}>
         {ROUNDS.map((n) => (
@@ -68,9 +77,11 @@ export function CribbageRecords(): JSX.Element {
       <div role="tabpanel" id={`tabpanel-${tab}`} aria-labelledby={`tab-${tab}`}>
         {error && <p role="alert">{error}</p>}
         {loading ? (
-          <p role="status" aria-live="polite">Loading leaderboard…</p>
+          <p role="status" aria-live="polite">
+            Loading leaderboard…
+          </p>
         ) : entries.length === 0 ? (
-          <p>No records yet for this length.</p>
+          <p>Nobody's completed today's {tab}-hand daily yet. Be the first.</p>
         ) : (
           <table className={styles.table}>
             <thead>
@@ -78,8 +89,8 @@ export function CribbageRecords(): JSX.Element {
                 <th scope="col">#</th>
                 <th scope="col">Player</th>
                 <th scope="col">Time</th>
-                <th scope="col">Mistakes</th>
-                <th scope="col">Date</th>
+                <th scope="col">Lives lost</th>
+                <th scope="col">Finished</th>
               </tr>
             </thead>
             <tbody>
@@ -91,7 +102,7 @@ export function CribbageRecords(): JSX.Element {
                   </td>
                   <td>{formatMs(e.total_ms)}</td>
                   <td>{e.mistakes}</td>
-                  <td>{new Date(e.created_at * 1000).toLocaleDateString()}</td>
+                  <td>{new Date(e.created_at * 1000).toLocaleTimeString()}</td>
                 </tr>
               ))}
             </tbody>

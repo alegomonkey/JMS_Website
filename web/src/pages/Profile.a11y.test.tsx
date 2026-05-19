@@ -37,6 +37,7 @@ function stubFetch(): void {
         return jsonResponse({
           user: { id: 1, username: "alice", role: "user", bio: "hi", created_at: 1_700_000_000 },
           bestTimes: { "5": null, "20": null, "100": null },
+          bestDaily: { "5": null, "20": null, "100": null },
         });
       }
       if (url.endsWith("/api/users/ghost")) {

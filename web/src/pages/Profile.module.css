@@ -58,6 +58,33 @@
   font-family: inherit;
 }
 
+.tableHint {
+  margin: 0 0 0.4rem;
+  font-size: 0.85rem;
+  opacity: 0.85;
+}
+
+.badgeDaily,
+.badgeFreeplay {
+  display: inline-block;
+  padding: 0.1rem 0.5rem;
+  font-size: 0.75rem;
+  border: 0.0625rem solid var(--border);
+  border-radius: 0.25rem;
+}
+
+.badgeDaily {
+  background: var(--bright);
+  color: var(--bg);
+  border-color: var(--bright);
+  font-weight: bold;
+}
+
+.badgeFreeplay {
+  background: var(--muted);
+  color: var(--fg);
+}
+
 .missing {
   text-align: center;
   padding: 2rem 1rem;

@@ -14,6 +14,11 @@ export function CribbageHelp(): JSX.Element {
         by adding up the categories below. Jacks, Queens, and Kings count as{" "}
         <strong>10</strong> for fifteens; aces count as <strong>1</strong>.
       </p>
+      <p>
+        Hands are drawn from a single shuffled 52-card deck; in longer games
+        the deck is reshuffled when it runs out, so the same card may reappear
+        in a later hand (but never twice in one hand).
+      </p>
 
       <section>
         <h2>Pairs — 2 points each</h2>

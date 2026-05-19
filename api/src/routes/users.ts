@@ -4,7 +4,7 @@ import type { DB } from "../db.js";
 import { requireAuth } from "../middleware/auth.js";
 import { writeLimiter } from "../middleware/rateLimit.js";
 import { httpError } from "../middleware/errorHandler.js";
-import { bestTimesForUser, recentGamesForUser } from "../services/cribbageService.js";
+import { bestDailyForUser, bestTimesForUser, recentGamesForUser } from "../services/cribbageService.js";
 
 const usernameParamSchema = z
   .string()
@@ -45,6 +45,7 @@ export function usersRouter(db: DB): Router {
           created_at: row.created_at,
         },
         bestTimes: bestTimesForUser(db, row.id),
+        bestDaily: bestDailyForUser(db, row.id),
       });
     } catch (err) {
       next(err);

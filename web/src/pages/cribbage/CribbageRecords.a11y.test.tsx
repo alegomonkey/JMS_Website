@@ -11,9 +11,10 @@ beforeEach(() => {
       const url = typeof input === "string" ? input : input.toString();
       if (url.endsWith("/api/auth/me")) return jsonResponse({ user: null });
       if (url.endsWith("/api/auth/csrf")) return jsonResponse({ token: "t" });
-      if (url.includes("/api/cribbage/leaderboard")) {
+      if (url.includes("/api/cribbage/daily/leaderboard")) {
         return jsonResponse({
           round_count: 5,
+          date: "2026-05-19",
           entries: [
             { rank: 1, username: "alice", total_ms: 5000, mistakes: 0, created_at: 1_700_000_000 },
             { rank: 2, username: "bob", total_ms: 7000, mistakes: 1, created_at: 1_700_000_500 },

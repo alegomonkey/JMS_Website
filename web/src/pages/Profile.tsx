@@ -184,13 +184,17 @@ export function Profile(): JSX.Element {
       </section>
 
       <section aria-labelledby="best-heading">
-        <h2 id="best-heading">Cribbage best times</h2>
+        <h2 id="best-heading">Best times overall</h2>
+        <p className={styles.tableHint}>
+          Best across all games — daily or free-play.
+        </p>
         <table className={styles.bestTable}>
           <thead>
             <tr>
               <th scope="col">Length</th>
               <th scope="col">Best time</th>
-              <th scope="col">Mistakes</th>
+              <th scope="col">Lives lost</th>
+              <th scope="col">Source</th>
               <th scope="col">When</th>
             </tr>
           </thead>
@@ -202,7 +206,46 @@ export function Profile(): JSX.Element {
                   <td>{k} hands</td>
                   <td>{b ? formatMs(b.total_ms) : "—"}</td>
                   <td>{b ? b.mistakes : "—"}</td>
+                  <td>
+                    {b ? (
+                      <span className={b.is_daily ? styles.badgeDaily : styles.badgeFreeplay}>
+                        {b.is_daily ? "Daily" : "Free-play"}
+                      </span>
+                    ) : (
+                      "—"
+                    )}
+                  </td>
                   <td>{b ? new Date(b.created_at * 1000).toLocaleDateString() : "—"}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </section>
+
+      <section aria-labelledby="best-daily-heading">
+        <h2 id="best-daily-heading">Best daily times</h2>
+        <p className={styles.tableHint}>
+          Best across completed daily runs only.
+        </p>
+        <table className={styles.bestTable}>
+          <thead>
+            <tr>
+              <th scope="col">Length</th>
+              <th scope="col">Best time</th>
+              <th scope="col">Lives lost</th>
+              <th scope="col">Daily date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {(["5", "20", "100"] as const).map((k) => {
+              const b = profile.bestDaily[k];
+              return (
+                <tr key={k}>
+                  <td>{k} hands</td>
+                  <td>{b ? formatMs(b.total_ms) : "—"}</td>
+                  <td>{b ? b.mistakes : "—"}</td>
+                  <td>{b ? b.daily_date : "—"}</td>
                 </tr>
               );
             })}

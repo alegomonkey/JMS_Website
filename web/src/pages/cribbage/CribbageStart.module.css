@@ -26,6 +26,61 @@
   background: var(--dark);
 }
 
+.dailySection {
+  margin: 1.5rem 0;
+  border: 0.0625rem solid var(--bright);
+  background: var(--muted);
+  padding: 0.8rem 0.9rem;
+}
+
+.dailyHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+}
+
+.dailyHeader h2 {
+  margin: 0;
+}
+
+.dailyHint {
+  margin-top: 0.2rem;
+  margin-bottom: 0.8rem;
+  font-size: 0.85rem;
+  opacity: 0.9;
+}
+
+.dailyButtons {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.5rem;
+}
+
+@media (min-width: 30rem) {
+  .dailyButtons {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.dailyButtons button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.dailyStatus {
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+
+.freeplaySection {
+  margin: 1.5rem 0;
+}
+
 .oskSection {
   margin: 1.5rem 0;
 }
@@ -34,12 +89,14 @@
   display: inline-flex;
   align-items: center;
   gap: 0.6rem;
+  min-height: 2.75rem;
 }
 
 .toggle input[type="checkbox"] {
   appearance: none;
   width: 2.75rem;
   height: 1.5rem;
+  min-height: 1.5rem;
   background: var(--muted);
   border: 0.0625rem solid var(--border);
   border-radius: 1rem;

@@ -1,3 +1,16 @@
+.header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.4rem;
+}
+
+.header h1 {
+  margin: 0;
+}
+
 .tabs {
   display: flex;
   gap: 0.4rem;

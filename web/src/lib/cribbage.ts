@@ -138,49 +138,77 @@ export function buildDeck(): string[] {
   return deck;
 }
 
-export function shuffle<T>(arr: T[]): T[] {
+export type Rng = () => number;
+
+export function shuffle<T>(arr: T[], rng: Rng = Math.random): T[] {
   const out = arr.slice();
   for (let i = out.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = Math.floor(rng() * (i + 1));
     [out[i], out[j]] = [out[j]!, out[i]!];
   }
   return out;
 }
 
-// Deal `count` hands of 5 cards (4 + cut) from a freshly shuffled deck.
-// Throws if count is too large for one deck-pass.
+// Deal `count` hands of 5 cards (4 + cut). Cards within a single hand are
+// always unique; when a game needs more than 52 cards (e.g. 100 hands × 5 = 500)
+// the deck is reshuffled mid-game using the *same* rng instance so a seeded
+// sequence stays deterministic across reshuffles.
 export interface DealtHand {
   cards: [string, string, string, string];
   cut: string;
 }
 
-export function dealHands(count: number): DealtHand[] {
-  const needed = count * 5;
-  if (needed > 52) {
-    // Multiple full shuffles back-to-back to cover larger games (the same card
-    // may appear across hands but never within a single hand).
-    const hands: DealtHand[] = [];
-    while (hands.length < count) {
-      const deck = shuffle(buildDeck());
-      const fit = Math.min(count - hands.length, Math.floor(52 / 5));
-      for (let i = 0; i < fit; i++) {
-        const base = i * 5;
-        hands.push({
-          cards: [deck[base]!, deck[base + 1]!, deck[base + 2]!, deck[base + 3]!],
-          cut: deck[base + 4]!,
-        });
-      }
-    }
-    return hands;
-  }
-  const deck = shuffle(buildDeck());
+export function dealHands(count: number, rng: Rng = Math.random): DealtHand[] {
   const hands: DealtHand[] = [];
-  for (let i = 0; i < count; i++) {
-    const base = i * 5;
-    hands.push({
-      cards: [deck[base]!, deck[base + 1]!, deck[base + 2]!, deck[base + 3]!],
-      cut: deck[base + 4]!,
-    });
+  while (hands.length < count) {
+    const deck = shuffle(buildDeck(), rng);
+    const fit = Math.min(count - hands.length, Math.floor(52 / 5));
+    for (let i = 0; i < fit; i++) {
+      const base = i * 5;
+      hands.push({
+        cards: [deck[base]!, deck[base + 1]!, deck[base + 2]!, deck[base + 3]!],
+        cut: deck[base + 4]!,
+      });
+    }
   }
   return hands;
+}
+
+// FNV-1a 32-bit hash. Deterministic, no dependencies, identical across JS
+// engines. Used to derive a 32-bit seed from the daily seed string.
+export function fnv1a32(s: string): number {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    // 32-bit FNV prime multiplication, kept inside uint32 range.
+    h = Math.imul(h, 0x01000193);
+  }
+  return h >>> 0;
+}
+
+// mulberry32: tiny seeded PRNG with a 32-bit state, good enough for shuffles.
+export function mulberry32(seed: number): Rng {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+// Per-daily RNG. Distinct round_count values produce independent streams so
+// the 5/20/100 dailies for a given day share no hands.
+export function seededDailyRng(dateUtc: string, roundCount: number): Rng {
+  const seed = fnv1a32(`daily|${dateUtc}|${roundCount}`);
+  return mulberry32(seed);
+}
+
+// "YYYY-MM-DD" in UTC for today. Exposed so callers can label daily entries.
+export function todayUtc(now: Date = new Date()): string {
+  const y = now.getUTCFullYear();
+  const m = String(now.getUTCMonth() + 1).padStart(2, "0");
+  const d = String(now.getUTCDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
 }

@@ -1,0 +1,17 @@
+.countdown {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.label {
+  font-size: 0.85rem;
+  opacity: 0.85;
+}
+
+.value {
+  color: var(--bright);
+  font-weight: bold;
+  font-size: 1rem;
+}
