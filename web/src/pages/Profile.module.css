@@ -1,0 +1,78 @@
+.header {
+  margin-bottom: 1rem;
+}
+
+.joined {
+  margin: 0;
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+.bioSection {
+  margin-bottom: 1.5rem;
+}
+
+.bioText {
+  white-space: pre-wrap;
+  margin: 0 0 0.6rem;
+}
+
+.bioActions {
+  display: flex;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+}
+
+.bestTable,
+.gamesTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1.5rem;
+}
+
+.bestTable th,
+.bestTable td,
+.gamesTable th,
+.gamesTable td {
+  padding: 0.5rem 0.6rem;
+  text-align: left;
+  border-bottom: 0.0625rem solid var(--border);
+}
+
+.bestTable th,
+.gamesTable th {
+  background: var(--muted);
+  color: var(--bright);
+  font-weight: bold;
+}
+
+.bestTable td,
+.gamesTable td {
+  font-variant-numeric: tabular-nums;
+}
+
+.handsShort {
+  margin: 0;
+  font-size: 0.78rem;
+  white-space: pre-wrap;
+  font-family: inherit;
+}
+
+.missing {
+  text-align: center;
+  padding: 2rem 1rem;
+}
+
+.homeLink {
+  display: inline-block;
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.9rem;
+  min-height: 2.75rem;
+  border: 0.0625rem solid var(--border);
+  background: var(--muted);
+  text-decoration: none;
+}
+
+.homeLink:hover {
+  border-color: var(--bright);
+}

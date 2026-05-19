@@ -4,6 +4,7 @@ import { MemoryRouter } from "react-router-dom";
 import { vi } from "vitest";
 import { AuthProvider } from "./lib/auth";
 import { ThemeProvider } from "./theme/ThemeProvider";
+import { PrefsProvider } from "./lib/prefs";
 
 export function jsonResponse(data: unknown, status = 200): Response {
   return new Response(JSON.stringify(data), {
@@ -31,9 +32,11 @@ export function renderWithProviders(
 ): RenderResult {
   return render(
     <ThemeProvider>
-      <MemoryRouter initialEntries={options.initialEntries ?? ["/"]}>
-        <AuthProvider>{ui}</AuthProvider>
-      </MemoryRouter>
+      <PrefsProvider>
+        <MemoryRouter initialEntries={options.initialEntries ?? ["/"]}>
+          <AuthProvider>{ui}</AuthProvider>
+        </MemoryRouter>
+      </PrefsProvider>
     </ThemeProvider>,
   );
 }

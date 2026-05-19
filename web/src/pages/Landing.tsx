@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+import { useAuth } from "../lib/auth";
 import { useDocumentTitle } from "../lib/useDocumentTitle";
 import styles from "./Landing.module.css";
 
@@ -14,6 +16,7 @@ const contacts = [
 
 export function Landing(): JSX.Element {
   useDocumentTitle("Home — JMS");
+  const { user } = useAuth();
   return (
     <div>
       <section className={styles.hero} aria-labelledby="hero-heading">
@@ -28,6 +31,36 @@ export function Landing(): JSX.Element {
           </p>
         </div>
       </section>
+
+      {user && (
+        <section aria-labelledby="members-heading">
+          <h2 id="members-heading">Members area</h2>
+          <p>Signed in as {user.username}. Logged-in features:</p>
+          <div className={styles.cards}>
+            <article className={styles.card}>
+              <h3>
+                <Link to="/cribbage">Cribbage speed test</Link>
+              </h3>
+              <p>
+                Recognise cribbage hand totals as fast as you can across 5,
+                20, or 100 hands. Times and mistakes are saved to your
+                profile and feed a global leaderboard.
+              </p>
+            </article>
+            <article className={styles.card}>
+              <h3>
+                <Link to={`/profile/${encodeURIComponent(user.username)}`}>
+                  Your profile
+                </Link>
+              </h3>
+              <p>
+                Set a bio, see your best times, and read comments others have
+                left for you.
+              </p>
+            </article>
+          </div>
+        </section>
+      )}
 
       <section>
         <h2>Links</h2>

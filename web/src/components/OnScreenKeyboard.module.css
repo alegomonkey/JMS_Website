@@ -1,0 +1,22 @@
+.pad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.4rem;
+  max-width: 18rem;
+  margin: 0.5rem auto 0;
+}
+
+.key {
+  min-height: 2.75rem;
+  font-size: 1.15rem;
+  padding: 0.5rem;
+}
+
+.back {
+  /* leftmost bottom-row key */
+}
+
+.enter {
+  /* rightmost bottom-row key — keep proportional with the others */
+  font-size: 1rem;
+}

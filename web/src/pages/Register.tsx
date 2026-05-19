@@ -70,6 +70,15 @@ export function Register(): JSX.Element {
       <p>
         Already have one? <a href="/signin">Sign in</a>.
       </p>
+      <aside aria-labelledby="comment-policy">
+        <h2 id="comment-policy">Comment policy</h2>
+        <p>
+          Creating an account lets you comment on projects and other people's
+          profiles. Please <strong>be kind and keep comments on topic</strong>.
+          Off-topic or hostile comments may be removed by the page owner or
+          site admin.
+        </p>
+      </aside>
     </div>
   );
 }

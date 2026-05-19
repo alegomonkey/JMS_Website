@@ -1,12 +1,21 @@
 server_tokens off;
 
-# HTTP-only mode: used on first boot, before Let's Encrypt has issued a cert.
-# The entrypoint switches to nginx.conf.template once a cert exists at
-# /etc/letsencrypt/live/${DOMAIN}/fullchain.pem.
+# HTTP-only mode: used on first boot, before Let's Encrypt has issued a cert,
+# and in dev (DOMAIN=localhost). The entrypoint switches to nginx.conf.template
+# once a cert exists at /etc/letsencrypt/live/${DOMAIN}/fullchain.pem.
 server {
     listen 80;
     listen [::]:80;
     server_name ${DOMAIN};
+
+    # Mirror the security headers from the HTTPS server block so dev and
+    # pre-cert traffic still ships with the same protections (HSTS omitted
+    # because it only takes effect over HTTPS).
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "DENY" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Permissions-Policy "geolocation=(), microphone=(), camera=()" always;
+    add_header Content-Security-Policy "default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self'; object-src 'self'; base-uri 'self'; frame-ancestors 'none'" always;
 
     location /.well-known/acme-challenge/ {
         root /var/www/certbot;
@@ -27,4 +36,5 @@ server {
 
     root /usr/share/nginx/html;
     index index.html;
+    client_max_body_size 1m;
 }

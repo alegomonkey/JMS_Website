@@ -1,0 +1,127 @@
+.game {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+.header {
+  margin-bottom: 0.5rem;
+}
+
+.attempts {
+  margin: 0;
+  color: var(--bright);
+  font-size: 0.9rem;
+}
+
+.board {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.8rem;
+}
+
+.cutWrap {
+  display: flex;
+  justify-content: center;
+  /* Mobile: cut card on top, sized to allow the hand row + input below. */
+}
+
+.cutWrap > figure {
+  max-width: 7rem;
+}
+
+.handWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.hand {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.4rem;
+}
+
+.entry {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.entry label {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.entry input {
+  width: 100%;
+  font-size: 1.25rem;
+  text-align: center;
+}
+
+.entry button {
+  min-height: 2.75rem;
+  padding: 0.5rem 1.2rem;
+}
+
+.wrong {
+  border-color: #e57373 !important;
+  animation: shake 0.3s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wrong {
+    animation: none;
+  }
+}
+
+@keyframes shake {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-0.3rem); }
+  50% { transform: translateX(0.3rem); }
+  75% { transform: translateX(-0.2rem); }
+  100% { transform: translateX(0); }
+}
+
+.errorMsg {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: #e57373;
+  font-size: 0.9rem;
+}
+
+.pb {
+  color: var(--bright);
+  font-weight: bold;
+}
+
+.guestNote {
+  border: 0.0625rem solid var(--bright);
+  border-left-width: 0.25rem;
+  padding: 0.6rem 0.9rem;
+  background: var(--muted);
+}
+
+.actions {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+@media (min-width: 48rem) {
+  .board {
+    grid-template-columns: auto 1fr;
+    align-items: start;
+    gap: 1.5rem;
+  }
+  .cutWrap {
+    justify-content: flex-start;
+  }
+  .cutWrap > figure {
+    max-width: 9rem;
+  }
+}

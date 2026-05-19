@@ -150,6 +150,11 @@ export function NavBar(): JSX.Element {
               Projects
             </NavLink>
           </li>
+          <li>
+            <NavLink to="/cribbage" className={linkClass}>
+              Cribbage
+            </NavLink>
+          </li>
         </ul>
         <div className={styles.spacer} />
         <ul className={styles.bottom}>
@@ -163,7 +168,9 @@ export function NavBar(): JSX.Element {
           </li>
           {user ? (
             <li className={styles.creds}>
-              <span className={styles.user}>{user.username}</span>
+              <NavLink to={`/profile/${encodeURIComponent(user.username)}`} className={linkClass}>
+                <span className={styles.user}>{user.username}</span>
+              </NavLink>
             </li>
           ) : (
             <li className={styles.creds}>

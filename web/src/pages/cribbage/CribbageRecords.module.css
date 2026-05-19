@@ -1,0 +1,36 @@
+.tabs {
+  display: flex;
+  gap: 0.4rem;
+  margin: 1rem 0;
+}
+
+.tabs button {
+  flex: 1 1 auto;
+}
+
+.active {
+  border-color: var(--bright);
+  background: var(--dark);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  padding: 0.5rem 0.6rem;
+  text-align: left;
+  border-bottom: 0.0625rem solid var(--border);
+}
+
+.table th {
+  background: var(--muted);
+  color: var(--bright);
+  font-weight: bold;
+}
+
+.table td {
+  font-variant-numeric: tabular-nums;
+}

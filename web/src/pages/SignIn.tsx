@@ -66,6 +66,14 @@ export function SignIn(): JSX.Element {
       <p>
         Need an account? <a href="/register">Register</a>.
       </p>
+      <aside aria-labelledby="comment-policy">
+        <h2 id="comment-policy">Comment policy</h2>
+        <p>
+          Signing in lets you comment on projects and other people's profiles.
+          Please <strong>be kind and keep comments on topic</strong>. Off-topic
+          or hostile comments may be removed by the page owner or site admin.
+        </p>
+      </aside>
     </div>
   );
 }

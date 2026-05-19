@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/auth";
 import { useTheme } from "../theme/ThemeProvider";
+import { usePrefs } from "../lib/prefs";
 import { useDocumentTitle } from "../lib/useDocumentTitle";
 import styles from "./Settings.module.css";
 
@@ -8,6 +9,7 @@ export function Settings(): JSX.Element {
   useDocumentTitle("Settings — JMS");
   const { theme, toggle } = useTheme();
   const { user, signOut } = useAuth();
+  const { onScreenKeyboard, setOnScreenKeyboard } = usePrefs();
   const navigate = useNavigate();
 
   async function handleSignOut(): Promise<void> {
@@ -36,6 +38,24 @@ export function Settings(): JSX.Element {
           <span aria-hidden="true">Light</span>
         </label>
       </section>
+
+      {user && (
+        <section aria-labelledby="game-heading">
+          <h2 id="game-heading">Cribbage game</h2>
+          <label className={styles.toggle}>
+            <span>On-screen keyboard off</span>
+            <input
+              type="checkbox"
+              role="switch"
+              aria-label="Show on-screen number keyboard during the cribbage game"
+              aria-checked={onScreenKeyboard}
+              checked={onScreenKeyboard}
+              onChange={(e) => setOnScreenKeyboard(e.target.checked)}
+            />
+            <span>On</span>
+          </label>
+        </section>
+      )}
 
       <section aria-labelledby="account-heading">
         <h2 id="account-heading">Account</h2>

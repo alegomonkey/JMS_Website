@@ -7,6 +7,15 @@ server {
     listen [::]:80;
     server_name ${DOMAIN};
 
+    # In dev these headers apply to the app responses below; in prod most
+    # traffic is redirected to HTTPS before they matter, but they're a safety
+    # net for anything served plain (eg ACME challenges).
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "DENY" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Permissions-Policy "geolocation=(), microphone=(), camera=()" always;
+    add_header Content-Security-Policy "default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self'; object-src 'self'; base-uri 'self'; frame-ancestors 'none'" always;
+
     location /.well-known/acme-challenge/ {
         root /var/www/certbot;
     }

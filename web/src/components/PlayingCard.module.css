@@ -1,0 +1,51 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  margin: 0;
+  padding: 0.3rem;
+  border: 0.0625rem solid var(--border);
+  background: var(--muted);
+  position: relative;
+}
+
+.cut {
+  border: 0.125rem solid var(--bright);
+  box-shadow: 0 0 0 0.125rem var(--dark);
+}
+
+.cutTag {
+  position: absolute;
+  top: -0.6rem;
+  left: 0.4rem;
+  padding: 0.05rem 0.4rem;
+  background: var(--bright);
+  color: var(--bg);
+  font-size: 0.75rem;
+  font-weight: bold;
+  letter-spacing: 0.05rem;
+}
+
+.image {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 242 / 340;
+  object-fit: contain;
+  background: #ffffff;
+}
+
+.label {
+  font-size: 0.8rem;
+  text-align: center;
+  line-height: 1.15;
+  word-wrap: break-word;
+  min-height: 1.8em;
+}
+
+@media (max-width: 30rem) {
+  .label {
+    font-size: 0.7rem;
+  }
+}
