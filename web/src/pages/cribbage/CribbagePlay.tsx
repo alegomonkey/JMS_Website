@@ -98,6 +98,12 @@ export function CribbagePlay(): JSX.Element {
     mistake_count: number;
   } | null>(null);
   const handStartRef = useRef<number>(Date.now());
+  const gameStartRef = useRef<number>(Date.now());
+  const [, forceTick] = useState(0);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -106,6 +112,15 @@ export function CribbagePlay(): JSX.Element {
     setAttempts(1);
     setFeedback("");
   }, [index]);
+
+  // Live game-timer tick. Re-renders the header clock ~10×/sec while the
+  // game is in progress. Stops once the run is over (finalGame / guestSummary).
+  const showLiveTimer = !finalGame && !guestSummary && !submitting;
+  useEffect(() => {
+    if (!showLiveTimer) return;
+    const id = window.setInterval(() => forceTick((n) => n + 1), 100);
+    return () => window.clearInterval(id);
+  }, [showLiveTimer]);
 
   const finishGame = useCallback(
     async (final: HandResult[], completed: boolean) => {
@@ -271,14 +286,14 @@ export function CribbagePlay(): JSX.Element {
   const handNumber = index + 1;
   const progress = `${handNumber} / ${hands.length}`;
 
-  const penaltySeconds = mistakeCount * (MISTAKE_PENALTY_MS / 1000);
-  const mistakeStatus = (
-    <span
-      className={styles.hearts}
-      aria-live="polite"
-      aria-label={`Mistakes: ${mistakeCount}, time added ${penaltySeconds} seconds`}
-    >
-      Mistakes: {mistakeCount} (+{penaltySeconds}s)
+  const liveTotalMs =
+    Date.now() - gameStartRef.current + mistakeCount * MISTAKE_PENALTY_MS;
+  const liveClock = (
+    // aria-hidden because a 10 Hz updating digit is hostile to screen readers
+    // — the heading already announces hand transitions; final time is
+    // announced on the completion screen.
+    <span className={styles.hearts} aria-hidden="true">
+      {(liveTotalMs / 1000).toFixed(2)}s
     </span>
   );
 
@@ -288,7 +303,7 @@ export function CribbagePlay(): JSX.Element {
         <h1>
           {mode === "daily" ? "Today's daily — " : ""}Hand {progress}
         </h1>
-        {mistakeStatus}
+        {liveClock}
       </header>
 
       {submitError && <p role="alert">{submitError}</p>}
