@@ -6,6 +6,7 @@ import { writeLimiter } from "../middleware/rateLimit.js";
 import { httpError } from "../middleware/errorHandler.js";
 import {
   dailyLeaderboard,
+  gameById,
   hasPlayedDaily,
   saveGame,
   type RoundCount,
@@ -56,6 +57,12 @@ const leaderboardQuerySchema = z
 const dailyQuerySchema = z
   .object({
     rounds: z.coerce.number().pipe(roundCountSchema),
+  })
+  .strict();
+
+const gameParamsSchema = z
+  .object({
+    id: z.coerce.number().int().positive(),
   })
   .strict();
 
@@ -110,6 +117,21 @@ export function cribbageRouter(db: DB): Router {
       const today = todayUtc();
       const entries = dailyLeaderboard(db, target, today);
       res.json({ round_count: target, date: today, entries });
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  // Public single-game detail used by record drill-down pages.
+  r.get("/cribbage/games/:id", (req, res, next) => {
+    try {
+      const { id } = gameParamsSchema.parse(req.params);
+      const game = gameById(db, id);
+      if (!game) {
+        next(httpError(404, "game not found"));
+        return;
+      }
+      res.json({ game });
     } catch (err) {
       next(err);
     }

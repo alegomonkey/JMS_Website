@@ -16,8 +16,8 @@ beforeEach(() => {
           round_count: 5,
           date: "2026-05-19",
           entries: [
-            { rank: 1, username: "alice", total_ms: 5000, mistakes: 0, created_at: 1_700_000_000 },
-            { rank: 2, username: "bob", total_ms: 7000, mistakes: 1, created_at: 1_700_000_500 },
+            { rank: 1, id: 101, username: "alice", total_ms: 5000, mistakes: 0, created_at: 1_700_000_000 },
+            { rank: 2, id: 102, username: "bob", total_ms: 7000, mistakes: 1, created_at: 1_700_000_500 },
           ],
         });
       }

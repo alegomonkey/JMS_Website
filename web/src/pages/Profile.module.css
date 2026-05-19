@@ -51,17 +51,70 @@
   font-variant-numeric: tabular-nums;
 }
 
-.handsShort {
-  margin: 0;
-  font-size: 0.78rem;
-  white-space: pre-wrap;
-  font-family: inherit;
+.tabs {
+  display: flex;
+  gap: 0.4rem;
+  margin: 0.5rem 0 1rem;
+  flex-wrap: wrap;
+}
+
+.tabs button {
+  flex: 1 1 auto;
+}
+
+.active {
+  border-color: var(--bright);
+  background: var(--dark);
+}
+
+.viewCol {
+  width: 1.5rem;
+  text-align: right;
+}
+
+.viewLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.75rem;
+  min-height: 1.75rem;
+  padding: 0 0.35rem;
+  font-size: 1.25rem;
+  line-height: 1;
+  text-decoration: none;
+  color: var(--bright);
+}
+
+.viewLink:hover {
+  text-decoration: none;
+}
+
+.srOnly {
+  position: absolute;
+  width: 0.0625rem;
+  height: 0.0625rem;
+  padding: 0;
+  margin: -0.0625rem;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .tableHint {
   margin: 0 0 0.4rem;
   font-size: 0.85rem;
   opacity: 0.85;
+}
+
+@media (max-width: 47.99rem) {
+  .bestTable th,
+  .bestTable td,
+  .gamesTable th,
+  .gamesTable td {
+    padding: 0.35rem 0.4rem;
+    font-size: 0.85rem;
+  }
 }
 
 .badgeDaily,

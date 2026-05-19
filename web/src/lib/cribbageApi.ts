@@ -44,6 +44,7 @@ export async function submitGame(
 
 export interface LeaderboardEntry {
   rank: number;
+  id: number;
   username: string;
   total_ms: number;
   mistakes: number;
@@ -133,4 +134,29 @@ export async function updateBio(bio: string): Promise<string> {
     body: { bio },
   });
   return res.bio;
+}
+
+export interface GameHand {
+  cards: string[];
+  cut: string;
+  attempts: number;
+  time_ms: number;
+  correct: number;
+}
+
+export interface GameDetail {
+  id: number;
+  username: string;
+  round_count: number;
+  total_ms: number;
+  mistakes: number;
+  daily_date: string | null;
+  completed: number;
+  created_at: number;
+  hands: GameHand[];
+}
+
+export async function fetchGame(id: number): Promise<GameDetail> {
+  const res = await apiRequest<{ game: GameDetail }>(`/api/cribbage/games/${id}`);
+  return res.game;
 }

@@ -23,6 +23,8 @@ type ProfileState =
   | { status: "ready"; profile: ProfileSnapshot }
   | { status: "error"; message: string };
 
+type StatsTab = "daily" | "overall" | "recent";
+
 function formatMs(ms: number): string {
   const totalSeconds = ms / 1000;
   if (totalSeconds < 60) return `${totalSeconds.toFixed(2)}s`;
@@ -41,6 +43,7 @@ export function Profile(): JSX.Element {
   const [editingBio, setEditingBio] = useState(false);
   const [bioSaving, setBioSaving] = useState(false);
   const [bioError, setBioError] = useState<string | null>(null);
+  const [tab, setTab] = useState<StatsTab>("daily");
 
   useDocumentTitle(
     state.status === "ready" ? `${state.profile.user.username} — JMS` : "Profile — JMS",
@@ -183,105 +186,169 @@ export function Profile(): JSX.Element {
         )}
       </section>
 
-      <section aria-labelledby="best-heading">
-        <h2 id="best-heading">Best times overall</h2>
-        <p className={styles.tableHint}>
-          Best across all games — daily or free-play.
-        </p>
-        <table className={styles.bestTable}>
-          <thead>
-            <tr>
-              <th scope="col">Length</th>
-              <th scope="col">Best time</th>
-              <th scope="col">Lives lost</th>
-              <th scope="col">Source</th>
-              <th scope="col">When</th>
-            </tr>
-          </thead>
-          <tbody>
-            {(["5", "20", "100"] as const).map((k) => {
-              const b = profile.bestTimes[k];
-              return (
-                <tr key={k}>
-                  <td>{k} hands</td>
-                  <td>{b ? formatMs(b.total_ms) : "—"}</td>
-                  <td>{b ? b.mistakes : "—"}</td>
-                  <td>
-                    {b ? (
-                      <span className={b.is_daily ? styles.badgeDaily : styles.badgeFreeplay}>
-                        {b.is_daily ? "Daily" : "Free-play"}
-                      </span>
-                    ) : (
-                      "—"
-                    )}
-                  </td>
-                  <td>{b ? new Date(b.created_at * 1000).toLocaleDateString() : "—"}</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </section>
+      <section aria-labelledby="stats-heading">
+        <h2 id="stats-heading" className={styles.srOnly}>
+          Stats
+        </h2>
+        <div role="tablist" aria-label="Stats" className={styles.tabs}>
+          <button
+            type="button"
+            role="tab"
+            id="tab-daily"
+            aria-selected={tab === "daily"}
+            aria-controls="tabpanel-daily"
+            onClick={() => setTab("daily")}
+            className={tab === "daily" ? styles.active : ""}
+          >
+            Best daily
+          </button>
+          <button
+            type="button"
+            role="tab"
+            id="tab-overall"
+            aria-selected={tab === "overall"}
+            aria-controls="tabpanel-overall"
+            onClick={() => setTab("overall")}
+            className={tab === "overall" ? styles.active : ""}
+          >
+            Best overall
+          </button>
+          <button
+            type="button"
+            role="tab"
+            id="tab-recent"
+            aria-selected={tab === "recent"}
+            aria-controls="tabpanel-recent"
+            onClick={() => setTab("recent")}
+            className={tab === "recent" ? styles.active : ""}
+          >
+            Recent games
+          </button>
+        </div>
 
-      <section aria-labelledby="best-daily-heading">
-        <h2 id="best-daily-heading">Best daily times</h2>
-        <p className={styles.tableHint}>
-          Best across completed daily runs only.
-        </p>
-        <table className={styles.bestTable}>
-          <thead>
-            <tr>
-              <th scope="col">Length</th>
-              <th scope="col">Best time</th>
-              <th scope="col">Lives lost</th>
-              <th scope="col">Daily date</th>
-            </tr>
-          </thead>
-          <tbody>
-            {(["5", "20", "100"] as const).map((k) => {
-              const b = profile.bestDaily[k];
-              return (
-                <tr key={k}>
-                  <td>{k} hands</td>
-                  <td>{b ? formatMs(b.total_ms) : "—"}</td>
-                  <td>{b ? b.mistakes : "—"}</td>
-                  <td>{b ? b.daily_date : "—"}</td>
+        {tab === "daily" && (
+          <div
+            role="tabpanel"
+            id="tabpanel-daily"
+            aria-labelledby="tab-daily"
+          >
+            <p className={styles.tableHint}>
+              Best across completed daily runs only.
+            </p>
+            <table className={styles.bestTable}>
+              <thead>
+                <tr>
+                  <th scope="col">Length</th>
+                  <th scope="col">Best time</th>
+                  <th scope="col">Lives lost</th>
+                  <th scope="col">Daily date</th>
                 </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </section>
+              </thead>
+              <tbody>
+                {(["5", "20", "100"] as const).map((k) => {
+                  const b = profile.bestDaily[k];
+                  return (
+                    <tr key={k}>
+                      <td>{k}</td>
+                      <td>{b ? formatMs(b.total_ms) : "—"}</td>
+                      <td>{b ? b.mistakes : "—"}</td>
+                      <td>{b ? b.daily_date : "—"}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
 
-      {games.length > 0 && (
-        <section aria-labelledby="recent-heading">
-          <h2 id="recent-heading">Recent games</h2>
-          <table className={styles.gamesTable}>
-            <thead>
-              <tr>
-                <th scope="col">When</th>
-                <th scope="col">Length</th>
-                <th scope="col">Time</th>
-                <th scope="col">Mistakes</th>
-                <th scope="col">Hands seen</th>
-              </tr>
-            </thead>
-            <tbody>
-              {games.map((g) => (
-                <tr key={g.id}>
-                  <td>{new Date(g.created_at * 1000).toLocaleString()}</td>
-                  <td>{g.round_count}</td>
-                  <td>{formatMs(g.total_ms)}</td>
-                  <td>{g.mistakes}</td>
-                  <td>
-                    <pre className={styles.handsShort}>{g.hands_short}</pre>
-                  </td>
+        {tab === "overall" && (
+          <div
+            role="tabpanel"
+            id="tabpanel-overall"
+            aria-labelledby="tab-overall"
+          >
+            <p className={styles.tableHint}>
+              Best across all games — daily or free-play.
+            </p>
+            <table className={styles.bestTable}>
+              <thead>
+                <tr>
+                  <th scope="col">Length</th>
+                  <th scope="col">Best time</th>
+                  <th scope="col">Lives lost</th>
+                  <th scope="col">Source</th>
+                  <th scope="col">When</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </section>
-      )}
+              </thead>
+              <tbody>
+                {(["5", "20", "100"] as const).map((k) => {
+                  const b = profile.bestTimes[k];
+                  return (
+                    <tr key={k}>
+                      <td>{k}</td>
+                      <td>{b ? formatMs(b.total_ms) : "—"}</td>
+                      <td>{b ? b.mistakes : "—"}</td>
+                      <td>
+                        {b ? (
+                          <span className={b.is_daily ? styles.badgeDaily : styles.badgeFreeplay}>
+                            {b.is_daily ? "Daily" : "Free-play"}
+                          </span>
+                        ) : (
+                          "—"
+                        )}
+                      </td>
+                      <td>{b ? new Date(b.created_at * 1000).toLocaleDateString() : "—"}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {tab === "recent" && (
+          <div
+            role="tabpanel"
+            id="tabpanel-recent"
+            aria-labelledby="tab-recent"
+          >
+            {games.length === 0 ? (
+              <p>No recent games yet.</p>
+            ) : (
+              <table className={styles.gamesTable}>
+                <thead>
+                  <tr>
+                    <th scope="col">Length</th>
+                    <th scope="col">Time</th>
+                    <th scope="col">Date</th>
+                    <th scope="col" className={styles.viewCol}>
+                      <span className={styles.srOnly}>View game</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {games.map((g) => (
+                    <tr key={g.id}>
+                      <td>{g.round_count}</td>
+                      <td>{formatMs(g.total_ms)}</td>
+                      <td>{new Date(g.created_at * 1000).toLocaleDateString()}</td>
+                      <td className={styles.viewCol}>
+                        <Link
+                          to={`/cribbage/games/${g.id}`}
+                          aria-label={`View game from ${new Date(g.created_at * 1000).toLocaleString()}`}
+                          className={styles.viewLink}
+                        >
+                          ›
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        )}
+      </section>
 
       <section aria-labelledby="comments-heading">
         <h2 id="comments-heading">Comments</h2>

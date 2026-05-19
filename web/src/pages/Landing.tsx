@@ -26,8 +26,8 @@ export function Landing(): JSX.Element {
         <div>
           <h1 id="hero-heading">John Sylvain</h1>
           <p>
-            Personal site. Notes, projects, and a CV. Built with React, Express,
-            SQLite, and Nginx, all wrapped in Docker.
+            Personal site for John Sylvain — projects, contact, and a daily
+            cribbage speed test.
           </p>
         </div>
       </section>

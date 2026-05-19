@@ -1,0 +1,82 @@
+.header {
+  margin-bottom: 0.6rem;
+}
+
+.header h1 {
+  margin: 0;
+  word-break: break-word;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem 1rem;
+  margin: 0 0 1.5rem;
+  padding: 0.7rem 0.9rem;
+  border: 0.0625rem solid var(--border);
+  background: var(--muted);
+}
+
+.stats > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.stats dt {
+  font-size: 0.78rem;
+  color: var(--bright);
+  letter-spacing: 0.05em;
+}
+
+.stats dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (min-width: 36rem) {
+  .stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.tableWrap {
+  width: 100%;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  padding: 0.4rem 0.5rem;
+  text-align: left;
+  border-bottom: 0.0625rem solid var(--border);
+  vertical-align: top;
+}
+
+.table th {
+  background: var(--muted);
+  color: var(--bright);
+  font-weight: bold;
+}
+
+.table td {
+  font-variant-numeric: tabular-nums;
+}
+
+.cards {
+  font-family: ui-monospace, "JetBrains Mono", "Fira Code", Menlo, Consolas, monospace;
+  letter-spacing: 0.02em;
+  word-spacing: 0.1em;
+}
+
+@media (max-width: 47.99rem) {
+  .table th,
+  .table td {
+    padding: 0.35rem 0.35rem;
+    font-size: 0.85rem;
+  }
+}

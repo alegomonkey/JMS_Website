@@ -115,6 +115,7 @@ export function saveGame(
 
 export interface LeaderboardRow {
   rank: number;
+  id: number;
   username: string;
   total_ms: number;
   mistakes: number;
@@ -130,7 +131,7 @@ export function dailyLeaderboard(
 ): LeaderboardRow[] {
   const rows = db
     .prepare(
-      `SELECT u.username, g.total_ms, g.mistakes, g.created_at
+      `SELECT g.id, u.username, g.total_ms, g.mistakes, g.created_at
        FROM cribbage_games g JOIN users u ON u.id = g.user_id
        WHERE g.daily_date = ? AND g.round_count = ? AND g.completed = 1
        ORDER BY g.total_ms ASC, g.mistakes ASC, g.created_at ASC
@@ -138,6 +139,67 @@ export function dailyLeaderboard(
     )
     .all(dailyDate, roundCount, limit) as Array<Omit<LeaderboardRow, "rank">>;
   return rows.map((r, i) => ({ rank: i + 1, ...r }));
+}
+
+export interface GameHand {
+  cards: string[];
+  cut: string;
+  attempts: number;
+  time_ms: number;
+  correct: number;
+}
+
+export interface GameDetail {
+  id: number;
+  username: string;
+  round_count: number;
+  total_ms: number;
+  mistakes: number;
+  daily_date: string | null;
+  completed: number;
+  created_at: number;
+  hands: GameHand[];
+}
+
+export function gameById(db: DB, id: number): GameDetail | null {
+  const row = db
+    .prepare(
+      `SELECT g.id, u.username, g.round_count, g.total_ms, g.mistakes,
+              g.daily_date, g.completed, g.created_at, g.hands_json
+       FROM cribbage_games g JOIN users u ON u.id = g.user_id
+       WHERE g.id = ?`,
+    )
+    .get(id) as
+    | {
+        id: number;
+        username: string;
+        round_count: number;
+        total_ms: number;
+        mistakes: number;
+        daily_date: string | null;
+        completed: number;
+        created_at: number;
+        hands_json: string;
+      }
+    | undefined;
+  if (!row) return null;
+  let hands: GameHand[] = [];
+  try {
+    hands = JSON.parse(row.hands_json) as GameHand[];
+  } catch {
+    hands = [];
+  }
+  return {
+    id: row.id,
+    username: row.username,
+    round_count: row.round_count,
+    total_ms: row.total_ms,
+    mistakes: row.mistakes,
+    daily_date: row.daily_date,
+    completed: row.completed,
+    created_at: row.created_at,
+    hands,
+  };
 }
 
 export interface BestEntry {

@@ -89,20 +89,30 @@ export function CribbageRecords(): JSX.Element {
                 <th scope="col">#</th>
                 <th scope="col">Player</th>
                 <th scope="col">Time</th>
-                <th scope="col">Lives lost</th>
-                <th scope="col">Finished</th>
+                <th scope="col">Date</th>
+                <th scope="col" className={styles.viewCol}>
+                  <span className={styles.srOnly}>View game</span>
+                </th>
               </tr>
             </thead>
             <tbody>
               {entries.map((e) => (
-                <tr key={`${e.username}-${e.created_at}`}>
+                <tr key={`${e.id}`}>
                   <td>{e.rank}</td>
                   <td>
                     <Link to={`/profile/${encodeURIComponent(e.username)}`}>{e.username}</Link>
                   </td>
                   <td>{formatMs(e.total_ms)}</td>
-                  <td>{e.mistakes}</td>
                   <td>{new Date(e.created_at * 1000).toLocaleTimeString()}</td>
+                  <td className={styles.viewCol}>
+                    <Link
+                      to={`/cribbage/games/${e.id}`}
+                      aria-label={`View ${e.username}'s game`}
+                      className={styles.viewLink}
+                    >
+                      ›
+                    </Link>
+                  </td>
                 </tr>
               ))}
             </tbody>

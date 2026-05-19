@@ -11,6 +11,7 @@ import { Profile } from "./pages/Profile";
 import { CribbageStart } from "./pages/cribbage/CribbageStart";
 import { CribbagePlay } from "./pages/cribbage/CribbagePlay";
 import { CribbageRecords } from "./pages/cribbage/CribbageRecords";
+import { CribbageGameDetail } from "./pages/cribbage/CribbageGameDetail";
 import { CribbageHelp } from "./pages/cribbage/CribbageHelp";
 import { useDocumentTitle } from "./lib/useDocumentTitle";
 
@@ -34,6 +35,7 @@ export function App(): JSX.Element {
             <Route path="/cribbage" element={<CribbageStart />} />
             <Route path="/cribbage/play" element={<CribbagePlay />} />
             <Route path="/cribbage/records" element={<CribbageRecords />} />
+            <Route path="/cribbage/games/:id" element={<CribbageGameDetail />} />
             <Route path="/cribbage/help" element={<CribbageHelp />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
