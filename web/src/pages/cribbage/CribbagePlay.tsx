@@ -21,7 +21,7 @@ import { OnScreenKeyboard } from "../../components/OnScreenKeyboard";
 import styles from "./CribbagePlay.module.css";
 
 const MOBILE_QUERY = "(max-width: 47.99rem)";
-const STARTING_LIVES = 3;
+const MISTAKE_PENALTY_MS = 3000;
 
 function parseRounds(raw: string | null): RoundCount | null {
   if (raw === "5") return 5;
@@ -87,7 +87,7 @@ export function CribbagePlay(): JSX.Element {
   const [index, setIndex] = useState(0);
   const [value, setValue] = useState("");
   const [attempts, setAttempts] = useState(1);
-  const [lives, setLives] = useState(STARTING_LIVES);
+  const [mistakeCount, setMistakeCount] = useState(0);
   const [feedback, setFeedback] = useState<"" | "wrong">("");
   const [results, setResults] = useState<HandResult[]>([]);
   const [submitting, setSubmitting] = useState(false);
@@ -95,9 +95,7 @@ export function CribbagePlay(): JSX.Element {
   const [finalGame, setFinalGame] = useState<SavedGame | null>(null);
   const [guestSummary, setGuestSummary] = useState<{
     total_ms: number;
-    lives_lost: number;
-    completed: boolean;
-    stoppedAt: number;
+    mistake_count: number;
   } | null>(null);
   const handStartRef = useRef<number>(Date.now());
 
@@ -112,15 +110,17 @@ export function CribbagePlay(): JSX.Element {
   const finishGame = useCallback(
     async (final: HandResult[], completed: boolean) => {
       if (!rounds) return;
-      const totalMs = final.reduce((acc, h) => acc + h.time_ms, 0);
-      const livesLost = STARTING_LIVES - lives;
+      const rawTotalMs = final.reduce((acc, h) => acc + h.time_ms, 0);
+      const handMistakes = final.reduce(
+        (acc, h) => acc + Math.max(0, h.attempts - 1),
+        0,
+      );
+      const effectiveTotalMs = rawTotalMs + handMistakes * MISTAKE_PENALTY_MS;
 
       if (!user) {
         setGuestSummary({
-          total_ms: totalMs,
-          lives_lost: livesLost,
-          completed,
-          stoppedAt: final.length,
+          total_ms: effectiveTotalMs,
+          mistake_count: handMistakes,
         });
         return;
       }
@@ -145,7 +145,7 @@ export function CribbagePlay(): JSX.Element {
         setSubmitting(false);
       }
     },
-    [rounds, user, mode, today, lives],
+    [rounds, user, mode, today],
   );
 
   const submit = useCallback(() => {
@@ -159,26 +159,11 @@ export function CribbagePlay(): JSX.Element {
     }
     const correct = scoreHand(current.cards, current.cut).total;
     if (parsed !== correct) {
-      const remaining = lives - 1;
-      setLives(remaining);
+      setMistakeCount((m) => m + 1);
       setFeedback("wrong");
       setAttempts((a) => a + 1);
       setValue("");
-      if (remaining === 0) {
-        // Record this hand as incomplete-with-partial-time and end the run.
-        const partial: HandResult = {
-          cards: current.cards,
-          cut: current.cut,
-          attempts: attempts + 1,
-          time_ms: Date.now() - handStartRef.current,
-          correct,
-        };
-        const next = [...results, partial];
-        setResults(next);
-        void finishGame(next, false);
-      } else {
-        inputRef.current?.focus();
-      }
+      inputRef.current?.focus();
       return;
     }
     const elapsed = Date.now() - handStartRef.current;
@@ -196,7 +181,7 @@ export function CribbagePlay(): JSX.Element {
     } else {
       setIndex(index + 1);
     }
-  }, [hands, index, value, attempts, lives, results, finishGame]);
+  }, [hands, index, value, attempts, results, finishGame]);
 
   if (!rounds) {
     return <Navigate to="/cribbage" replace />;
@@ -205,57 +190,15 @@ export function CribbagePlay(): JSX.Element {
     return <p>Dealing…</p>;
   }
 
-  const gameOverBranch = (heading: string, body: JSX.Element) => (
-    <div>
-      <h1>{heading}</h1>
-      {body}
-      <ul className={styles.actions}>
-        <li>
-          <button
-            type="button"
-            onClick={() => {
-              // Reset by remounting with the same URL.
-              navigate(0);
-            }}
-            disabled={mode === "daily"}
-            title={mode === "daily" ? "Daily can only be played once per day" : undefined}
-          >
-            Play again
-          </button>
-        </li>
-        <li>
-          <Link to="/cribbage/records">View records</Link>
-        </li>
-        <li>
-          <Link to="/cribbage">Back to start</Link>
-        </li>
-      </ul>
-    </div>
-  );
-
   if (finalGame) {
-    const livesLost = finalGame.mistakes; // 0..3 under the new mechanic
-    if (!finalGame.completed) {
-      return gameOverBranch(
-        "Game over",
-        <>
-          <p>
-            You ran out of lives on hand {results.length} of {rounds}.
-          </p>
-          {mode === "daily" && (
-            <p role="status">
-              Today's daily {rounds}-hand run is locked in. Come back tomorrow.
-            </p>
-          )}
-        </>,
-      );
-    }
+    const totalMistakes = finalGame.mistakes;
     return (
       <div>
         <h1>Game complete</h1>
         <p>
-          {rounds} hands · total {(finalGame.total_ms / 1000).toFixed(2)}s · lives lost{" "}
-          {livesLost} of 3.
+          {rounds} hands · total {(finalGame.total_ms / 1000).toFixed(2)}s ·{" "}
+          {totalMistakes} mistake{totalMistakes === 1 ? "" : "s"} (+
+          {totalMistakes * 3}s).
         </p>
         {finalGame.isPersonalBest && (
           <p role="status" className={styles.pb}>
@@ -285,26 +228,14 @@ export function CribbagePlay(): JSX.Element {
   }
 
   if (guestSummary) {
-    if (!guestSummary.completed) {
-      return gameOverBranch(
-        "Game over",
-        <>
-          <p>
-            You ran out of lives on hand {guestSummary.stoppedAt} of {rounds}.
-          </p>
-          <p role="status" className={styles.guestNote}>
-            Result was <strong>not saved</strong>. <Link to="/signin">Sign in</Link> or{" "}
-            <Link to="/register">create an account</Link> to record next time.
-          </p>
-        </>,
-      );
-    }
+    const guestMistakes = guestSummary.mistake_count;
     return (
       <div>
         <h1>Game complete</h1>
         <p>
-          {rounds} hands · total {(guestSummary.total_ms / 1000).toFixed(2)}s · lives lost{" "}
-          {guestSummary.lives_lost} of 3.
+          {rounds} hands · total {(guestSummary.total_ms / 1000).toFixed(2)}s ·{" "}
+          {guestMistakes} mistake{guestMistakes === 1 ? "" : "s"} (+
+          {guestMistakes * 3}s).
         </p>
         <p role="status" className={styles.guestNote}>
           Your result was <strong>not saved</strong>. <Link to="/signin">Sign in</Link>{" "}
@@ -340,15 +271,14 @@ export function CribbagePlay(): JSX.Element {
   const handNumber = index + 1;
   const progress = `${handNumber} / ${hands.length}`;
 
-  const hearts = (
+  const penaltySeconds = mistakeCount * (MISTAKE_PENALTY_MS / 1000);
+  const mistakeStatus = (
     <span
       className={styles.hearts}
-      role="img"
-      aria-label={`Lives remaining: ${lives} of ${STARTING_LIVES}`}
+      aria-live="polite"
+      aria-label={`Mistakes: ${mistakeCount}, time added ${penaltySeconds} seconds`}
     >
-      <span aria-hidden="true">
-        {Array.from({ length: STARTING_LIVES }, (_, i) => (i < lives ? "❤" : "🤍")).join(" ")}
-      </span>
+      Mistakes: {mistakeCount} (+{penaltySeconds}s)
     </span>
   );
 
@@ -358,7 +288,7 @@ export function CribbagePlay(): JSX.Element {
         <h1>
           {mode === "daily" ? "Today's daily — " : ""}Hand {progress}
         </h1>
-        {hearts}
+        {mistakeStatus}
       </header>
 
       {submitError && <p role="alert">{submitError}</p>}

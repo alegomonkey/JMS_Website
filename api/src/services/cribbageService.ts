@@ -4,6 +4,8 @@ import { scoreHand } from "./cribbageScoring.js";
 
 export type RoundCount = 5 | 20 | 100;
 
+const MISTAKE_PENALTY_MS = 3000;
+
 export interface IncomingHand {
   cards: string[];
   cut: string;
@@ -46,8 +48,9 @@ export function saveGame(
     time_ms: h.time_ms,
     correct: scoreHand(h.cards, h.cut).total,
   }));
-  const totalMs = stored.reduce((acc, h) => acc + h.time_ms, 0);
+  const rawTotalMs = stored.reduce((acc, h) => acc + h.time_ms, 0);
   const mistakes = stored.reduce((acc, h) => acc + Math.max(0, h.attempts - 1), 0);
+  const totalMs = rawTotalMs + mistakes * MISTAKE_PENALTY_MS;
   const handsJson = JSON.stringify(stored);
   const createdAt = Math.floor(Date.now() / 1000);
   const completedInt = opts.completed ? 1 : 0;

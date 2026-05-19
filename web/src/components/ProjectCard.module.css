@@ -6,17 +6,33 @@
 
 .cardTitle {
   font-size: 1.05rem;
-  margin: 0;
+  margin: 0 0 0.6rem;
 }
 
-.cardTitle a {
-  text-decoration: none;
+.titleButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 0.0625rem solid var(--border);
+  background: var(--bg);
   color: var(--bright);
+  text-decoration: none;
+  padding: 0.5rem 0.85rem;
+  min-height: 2.75rem;
+  font-weight: 600;
+  cursor: pointer;
 }
 
-.cardTitle a:hover,
-.cardTitle a:focus-visible {
-  text-decoration: underline;
+.titleButton:hover,
+.titleButton:focus-visible {
+  background: var(--bright);
+  color: var(--bg);
+  border-color: var(--bright);
+}
+
+.titleArrow {
+  font-size: 1.05em;
+  line-height: 1;
 }
 
 .card:hover {
@@ -52,8 +68,36 @@
 
 .tags li {
   display: inline-flex;
+}
+
+.tagButton {
+  display: inline-flex;
   align-items: center;
   border: 0.0625rem solid var(--border);
   background: var(--bg);
-  padding: 0.15rem 0.5rem;
+  color: var(--bright);
+  font: inherit;
+  font-size: 1em;
+  padding: 0.25rem 0.55rem;
+  min-height: 1.9rem;
+  cursor: pointer;
+}
+
+.tagButton:hover:not(:disabled),
+.tagButton:focus-visible {
+  background: var(--bright);
+  color: var(--bg);
+  border-color: var(--bright);
+}
+
+.tagButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.tagActive {
+  background: var(--bright);
+  color: var(--bg);
+  border-color: var(--bright);
+  opacity: 1;
 }

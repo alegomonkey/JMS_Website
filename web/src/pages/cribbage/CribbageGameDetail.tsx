@@ -29,9 +29,9 @@ function shortenCard(card: string): string {
   return `${r}${suit[0]!.toUpperCase()}`;
 }
 
-function livesLostCell(attempts: number): string {
-  const lost = Math.max(0, attempts - 1);
-  return lost === 0 ? "—" : String(lost);
+function timeAddedCell(attempts: number): string {
+  const mistakes = Math.max(0, attempts - 1);
+  return mistakes === 0 ? "—" : `${mistakes * 3}s`;
 }
 
 type State =
@@ -133,8 +133,8 @@ export function CribbageGameDetail(): JSX.Element {
           <dd>{formatMs(game.total_ms)}</dd>
         </div>
         <div>
-          <dt>Lives lost</dt>
-          <dd>{game.mistakes}</dd>
+          <dt>Time added</dt>
+          <dd>{game.mistakes * 3}s</dd>
         </div>
         <div>
           <dt>Hands played</dt>
@@ -169,7 +169,7 @@ export function CribbageGameDetail(): JSX.Element {
                 <th scope="col">Cut</th>
                 <th scope="col">Score</th>
                 <th scope="col">Time</th>
-                <th scope="col">Lives lost</th>
+                <th scope="col">Time added</th>
               </tr>
             </thead>
             <tbody>
@@ -182,7 +182,7 @@ export function CribbageGameDetail(): JSX.Element {
                   <td className={styles.cards}>{shortenCard(h.cut)}</td>
                   <td>{h.correct}</td>
                   <td>{formatMs(h.time_ms)}</td>
-                  <td>{livesLostCell(h.attempts)}</td>
+                  <td>{timeAddedCell(h.attempts)}</td>
                 </tr>
               ))}
             </tbody>

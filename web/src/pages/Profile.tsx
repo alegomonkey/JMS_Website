@@ -237,7 +237,7 @@ export function Profile(): JSX.Element {
                 <tr>
                   <th scope="col">Length</th>
                   <th scope="col">Best time</th>
-                  <th scope="col">Lives lost</th>
+                  <th scope="col">Time added</th>
                   <th scope="col">Daily date</th>
                   <th scope="col" className={styles.viewCol}>
                     <span className={styles.srOnly}>View game</span>
@@ -251,7 +251,7 @@ export function Profile(): JSX.Element {
                     <tr key={k}>
                       <td>{k}</td>
                       <td>{b ? formatMs(b.total_ms) : "—"}</td>
-                      <td>{b ? b.mistakes : "—"}</td>
+                      <td>{b ? `${b.mistakes * 3}s` : "—"}</td>
                       <td>{b ? b.daily_date : "—"}</td>
                       <td className={styles.viewCol}>
                         {b ? (
@@ -283,7 +283,7 @@ export function Profile(): JSX.Element {
                 <tr>
                   <th scope="col">Length</th>
                   <th scope="col">Best time</th>
-                  <th scope="col">Lives lost</th>
+                  <th scope="col">Time added</th>
                   <th scope="col">Source</th>
                   <th scope="col">When</th>
                   <th scope="col" className={styles.viewCol}>
@@ -298,7 +298,7 @@ export function Profile(): JSX.Element {
                     <tr key={k}>
                       <td>{k}</td>
                       <td>{b ? formatMs(b.total_ms) : "—"}</td>
-                      <td>{b ? b.mistakes : "—"}</td>
+                      <td>{b ? `${b.mistakes * 3}s` : "—"}</td>
                       <td>
                         {b ? (
                           <span className={b.is_daily ? styles.badgeDaily : styles.badgeFreeplay}>

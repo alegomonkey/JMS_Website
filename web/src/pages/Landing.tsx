@@ -6,11 +6,11 @@ import styles from "./Landing.module.css";
 const links = [
   { label: "GitHub", url: "https://github.com/alegomonkey" },
   { label: "LinkedIn", url: "https://www.linkedin.com/in/johnny-sylvain-322852362/" },
-  { label: "Email", url: "mailto:alegomonkey@gmail.com" },
+  { label: "Email", url: "mailto:email@johnnysylvain.com" },
 ];
 
 const contacts = [
-  { label: "Email", value: "alegomonkey@gmail.com" },
+  { label: "Email", value: "email@johnnysylvain.com" },
   { label: "Location", value: "Maine, USA" },
 ];
 

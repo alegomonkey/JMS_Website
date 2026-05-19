@@ -60,9 +60,9 @@ export function CribbageStart(): JSX.Element {
       <p>
         Each round deals four cards to your hand and one cut card. Enter the
         total cribbage points the hand is worth and press Enter. Wrong answers
-        keep the same hand on screen and <strong>cost a life</strong> — you have{" "}
-        <strong>three lives</strong> per run; lose them all and the game ends
-        immediately.
+        keep the same hand on screen and{" "}
+        <strong>add 3 seconds to your final time</strong> — you play through
+        every hand no matter what, but each mistake inflates your time by 3 s.
       </p>
       <p>
         Cards are dealt from a single freshly-shuffled 52-card deck. Hands are

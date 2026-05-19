@@ -58,8 +58,20 @@ export function Projects(): JSX.Element {
     <div>
       <h1>Projects</h1>
       <p className={styles.intro}>
-        A selection of things I&apos;ve built. Click any card for more — you&apos;ll
-        need to sign in to leave a comment. <strong>{allProjects.length} projects.</strong>
+        A selection of things I&apos;ve built. Click any project title for the
+        full write-up, or use the tags below the description to filter the
+        list. The <strong>repo</strong> link on each card opens that
+        project&apos;s source on{" "}
+        <a
+          href="https://github.com"
+          target="_blank"
+          rel="noreferrer noopener"
+        >
+          GitHub
+        </a>{" "}
+        — a public hosting site for source code that lets anyone read, copy,
+        or contribute to a project.{" "}
+        <strong>{allProjects.length} projects.</strong>
       </p>
 
       <TagCombobox
@@ -107,6 +119,8 @@ export function Projects(): JSX.Element {
               key={p.slug}
               project={p}
               linkState={{ from: location.search }}
+              onTagClick={addTag}
+              activeTags={activeTags}
             />
           ))}
         </div>
