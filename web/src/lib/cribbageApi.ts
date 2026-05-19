@@ -74,6 +74,7 @@ export async function fetchDaily(rounds: RoundCount): Promise<DailyInfo> {
 }
 
 export interface BestTimeEntry {
+  game_id: number | null;
   total_ms: number;
   mistakes: number;
   created_at: number;
@@ -81,6 +82,7 @@ export interface BestTimeEntry {
 }
 
 export interface BestDailyEntry {
+  game_id: number;
   total_ms: number;
   mistakes: number;
   daily_date: string;

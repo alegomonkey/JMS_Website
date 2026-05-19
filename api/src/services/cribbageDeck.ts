@@ -1,7 +1,10 @@
 // Deterministic deck dealing for daily challenges. The shuffle / dealHands /
-// FNV-1a / mulberry32 / seededDailyRng / todayUtc functions here must produce
+// FNV-1a / mulberry32 / seededDailyRng / todayEt functions here must produce
 // byte-identical output to web/src/lib/cribbage.ts so the server can validate
 // a submitted daily run against its own derivation.
+//
+// "Today" is anchored to America/New_York (Eastern Time, DST-aware) so the
+// daily rolls over at local midnight in Maine instead of midnight UTC.
 
 const SUITS = ["clubs", "diamonds", "hearts", "spades"] as const;
 const RANK_STRS = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"] as const;
@@ -64,17 +67,23 @@ export function mulberry32(seed: number): Rng {
   };
 }
 
-export function seededDailyRng(dateUtc: string, roundCount: number): Rng {
-  return mulberry32(fnv1a32(`daily|${dateUtc}|${roundCount}`));
+export function seededDailyRng(date: string, roundCount: number): Rng {
+  return mulberry32(fnv1a32(`daily|${date}|${roundCount}`));
 }
 
-export function todayUtc(now: Date = new Date()): string {
-  const y = now.getUTCFullYear();
-  const m = String(now.getUTCMonth() + 1).padStart(2, "0");
-  const d = String(now.getUTCDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
+export const DAILY_ZONE = "America/New_York";
+
+export function todayEt(now: Date = new Date()): string {
+  // en-CA emits ISO-style "YYYY-MM-DD" — locale chosen for that property, not
+  // because we want Canadian formatting elsewhere.
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: DAILY_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(now);
 }
 
-export function dailyHands(dateUtc: string, roundCount: number): DealtHand[] {
-  return dealHands(roundCount, seededDailyRng(dateUtc, roundCount));
+export function dailyHands(date: string, roundCount: number): DealtHand[] {
+  return dealHands(roundCount, seededDailyRng(date, roundCount));
 }

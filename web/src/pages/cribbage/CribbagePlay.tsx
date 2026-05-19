@@ -7,7 +7,7 @@ import {
   dealHands,
   scoreHand,
   seededDailyRng,
-  todayUtc,
+  todayEt,
   type DealtHand,
 } from "../../lib/cribbage";
 import {
@@ -77,7 +77,7 @@ export function CribbagePlay(): JSX.Element {
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   // Hand sequence — deterministic on daily, random on free-play.
-  const today = useMemo(() => todayUtc(), []);
+  const today = useMemo(() => todayEt(), []);
   const hands = useMemo<DealtHand[] | null>(() => {
     if (!rounds) return null;
     if (mode === "daily") return dealHands(rounds, seededDailyRng(today, rounds));

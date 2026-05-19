@@ -101,12 +101,6 @@
   border: 0;
 }
 
-.tableHint {
-  margin: 0 0 0.4rem;
-  font-size: 0.85rem;
-  opacity: 0.85;
-}
-
 @media (max-width: 47.99rem) {
   .bestTable th,
   .bestTable td,

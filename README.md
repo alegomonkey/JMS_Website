@@ -11,10 +11,22 @@ follow the curriculum at <https://tschotter.github.io/webserver-tomb/>.
   tag filter combobox; URL search params keep filters shareable.
 - **Project detail** (`/projects/:slug`) — overview, contributions, repo
   link, and a threaded comment thread you can upvote.
+- **Cribbage speed test** (`/cribbage`) — counting drill against a freshly
+  shuffled deck. Daily mode is seeded per-day (5/20/100 hands) and rolls
+  over at midnight Eastern Time; free-play is unlimited practice. Three
+  lives per run; the API recomputes each hand's score and rejects daily
+  runs whose dealt cards don't match the day's seed.
+- **Records** (`/cribbage/records`) — today's daily leaderboard, one tab per
+  length. Each row links to a per-game detail page
+  (`/cribbage/games/:id`) with the full hand-by-hand breakdown.
+- **Profile** (`/profile/:username`) — bio, cribbage stats split into tabs
+  (Best daily / Best overall / Recent games) with click-throughs to any
+  game's detail page, plus a per-profile comment thread.
 - **Auth** — register / sign in / sign out; guests can read, accounts can
-  post and vote. One admin role can delete any comment (CLI-granted on the
-  host).
-- **Settings** — theme switch (defaults to OS `prefers-color-scheme`).
+  post, vote, and record cribbage results. One admin role can delete any
+  comment (CLI-granted on the host).
+- **Settings** — theme switch (defaults to OS `prefers-color-scheme`) and
+  an on-screen-keyboard toggle for the cribbage input on desktop.
 - **Mobile-first, AAA-targeting** — responsive at 320 / 375 / 768 / 1024 /
   1440 px, hamburger drawer with focus trap below 768 px, axe-tested per
   route. See [`web/ACCESSIBILITY.md`](web/ACCESSIBILITY.md).

@@ -203,6 +203,7 @@ export function gameById(db: DB, id: number): GameDetail | null {
 }
 
 export interface BestEntry {
+  game_id: number | null;
   total_ms: number;
   mistakes: number;
   created_at: number;
@@ -218,10 +219,11 @@ export interface BestTimes {
 export function bestTimesForUser(db: DB, userId: number): BestTimes {
   const rows = db
     .prepare(
-      "SELECT round_count, total_ms, mistakes, created_at, is_daily FROM cribbage_best_times WHERE user_id = ?",
+      "SELECT round_count, game_id, total_ms, mistakes, created_at, is_daily FROM cribbage_best_times WHERE user_id = ?",
     )
     .all(userId) as Array<{
     round_count: number;
+    game_id: number | null;
     total_ms: number;
     mistakes: number;
     created_at: number;
@@ -232,6 +234,7 @@ export function bestTimesForUser(db: DB, userId: number): BestTimes {
     const key = String(r.round_count) as "5" | "20" | "100";
     if (key in out) {
       out[key] = {
+        game_id: r.game_id,
         total_ms: r.total_ms,
         mistakes: r.mistakes,
         created_at: r.created_at,
@@ -243,6 +246,7 @@ export function bestTimesForUser(db: DB, userId: number): BestTimes {
 }
 
 export interface BestDailyEntry {
+  game_id: number;
   total_ms: number;
   mistakes: number;
   daily_date: string;
@@ -256,14 +260,23 @@ export interface BestDaily {
 
 export function bestDailyForUser(db: DB, userId: number): BestDaily {
   // For each round_count, the user's fastest completed daily run ever.
+  // Window function ensures the returned mistakes/daily_date/id all come
+  // from the same row as the MIN(total_ms) — using a bare GROUP BY here
+  // returns an arbitrary row's siblings on SQLite.
   const rows = db
     .prepare(
-      `SELECT round_count, MIN(total_ms) AS total_ms, mistakes, daily_date
-       FROM cribbage_games
-       WHERE user_id = ? AND daily_date IS NOT NULL AND completed = 1
-       GROUP BY round_count`,
+      `SELECT id, round_count, total_ms, mistakes, daily_date FROM (
+         SELECT id, round_count, total_ms, mistakes, daily_date,
+           ROW_NUMBER() OVER (
+             PARTITION BY round_count
+             ORDER BY total_ms ASC, mistakes ASC, created_at ASC
+           ) AS rn
+         FROM cribbage_games
+         WHERE user_id = ? AND daily_date IS NOT NULL AND completed = 1
+       ) WHERE rn = 1`,
     )
     .all(userId) as Array<{
+    id: number;
     round_count: number;
     total_ms: number;
     mistakes: number;
@@ -273,7 +286,12 @@ export function bestDailyForUser(db: DB, userId: number): BestDaily {
   for (const r of rows) {
     const key = String(r.round_count) as "5" | "20" | "100";
     if (key in out) {
-      out[key] = { total_ms: r.total_ms, mistakes: r.mistakes, daily_date: r.daily_date };
+      out[key] = {
+        game_id: r.id,
+        total_ms: r.total_ms,
+        mistakes: r.mistakes,
+        daily_date: r.daily_date,
+      };
     }
   }
   return out;

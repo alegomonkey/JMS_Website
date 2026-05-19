@@ -9,7 +9,7 @@ import {
   fnv1a32,
   mulberry32,
   seededDailyRng,
-  todayUtc,
+  todayEt,
 } from "./cribbage";
 
 describe("cribbage scoring (client)", () => {
@@ -137,9 +137,13 @@ describe("seeded shuffle", () => {
     expect(hands[0]!.cut).toMatch(/^(clubs|diamonds|hearts|spades)_(A|[2-9]|10|J|Q|K)$/);
   });
 
-  it("todayUtc formats YYYY-MM-DD", () => {
-    expect(todayUtc(new Date(Date.UTC(2026, 4, 19, 23, 59)))).toBe("2026-05-19");
-    expect(todayUtc(new Date(Date.UTC(2026, 0, 1, 0, 0)))).toBe("2026-01-01");
+  it("todayEt formats YYYY-MM-DD in America/New_York", () => {
+    // 23:59 UTC on 2026-05-19 = 19:59 EDT on 2026-05-19 (still May 19 in NY).
+    expect(todayEt(new Date(Date.UTC(2026, 4, 19, 23, 59)))).toBe("2026-05-19");
+    // 04:00 UTC on 2026-05-20 = 00:00 EDT on 2026-05-20 (first instant of May 20 ET).
+    expect(todayEt(new Date(Date.UTC(2026, 4, 20, 4, 0)))).toBe("2026-05-20");
+    // 00:00 UTC on 2026-01-01 = 19:00 EST on 2025-12-31 (rolls back a day in winter).
+    expect(todayEt(new Date(Date.UTC(2026, 0, 1, 0, 0)))).toBe("2025-12-31");
   });
 });
 

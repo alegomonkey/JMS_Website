@@ -232,9 +232,6 @@ export function Profile(): JSX.Element {
             id="tabpanel-daily"
             aria-labelledby="tab-daily"
           >
-            <p className={styles.tableHint}>
-              Best across completed daily runs only.
-            </p>
             <table className={styles.bestTable}>
               <thead>
                 <tr>
@@ -242,6 +239,9 @@ export function Profile(): JSX.Element {
                   <th scope="col">Best time</th>
                   <th scope="col">Lives lost</th>
                   <th scope="col">Daily date</th>
+                  <th scope="col" className={styles.viewCol}>
+                    <span className={styles.srOnly}>View game</span>
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -253,6 +253,17 @@ export function Profile(): JSX.Element {
                       <td>{b ? formatMs(b.total_ms) : "—"}</td>
                       <td>{b ? b.mistakes : "—"}</td>
                       <td>{b ? b.daily_date : "—"}</td>
+                      <td className={styles.viewCol}>
+                        {b ? (
+                          <Link
+                            to={`/cribbage/games/${b.game_id}`}
+                            aria-label={`View ${k}-hand best daily game`}
+                            className={styles.viewLink}
+                          >
+                            ›
+                          </Link>
+                        ) : null}
+                      </td>
                     </tr>
                   );
                 })}
@@ -267,9 +278,6 @@ export function Profile(): JSX.Element {
             id="tabpanel-overall"
             aria-labelledby="tab-overall"
           >
-            <p className={styles.tableHint}>
-              Best across all games — daily or free-play.
-            </p>
             <table className={styles.bestTable}>
               <thead>
                 <tr>
@@ -278,6 +286,9 @@ export function Profile(): JSX.Element {
                   <th scope="col">Lives lost</th>
                   <th scope="col">Source</th>
                   <th scope="col">When</th>
+                  <th scope="col" className={styles.viewCol}>
+                    <span className={styles.srOnly}>View game</span>
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -298,6 +309,17 @@ export function Profile(): JSX.Element {
                         )}
                       </td>
                       <td>{b ? new Date(b.created_at * 1000).toLocaleDateString() : "—"}</td>
+                      <td className={styles.viewCol}>
+                        {b && b.game_id != null ? (
+                          <Link
+                            to={`/cribbage/games/${b.game_id}`}
+                            aria-label={`View ${k}-hand best overall game`}
+                            className={styles.viewLink}
+                          >
+                            ›
+                          </Link>
+                        ) : null}
+                      </td>
                     </tr>
                   );
                 })}

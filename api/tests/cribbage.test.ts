@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import request from "supertest";
 import { makeTestApp, type TestEnv } from "./helpers.js";
-import { dailyHands, todayUtc } from "../src/services/cribbageDeck.js";
+import { dailyHands, todayEt } from "../src/services/cribbageDeck.js";
 
 async function signedInAgent(env: TestEnv, username: string) {
   const agent = request.agent(env.app);
@@ -104,7 +104,7 @@ describe("cribbage game routes", () => {
     const res = await request(env.app).get("/api/cribbage/daily?rounds=5");
     expect(res.status).toBe(200);
     expect(res.body.round_count).toBe(5);
-    expect(res.body.date).toBe(todayUtc());
+    expect(res.body.date).toBe(todayEt());
     expect(res.body.played).toBe(false);
     expect(res.body.hands).toHaveLength(5);
     // Cards in each dealt hand are unique.
@@ -116,7 +116,7 @@ describe("cribbage game routes", () => {
 
   it("stores a daily run; second attempt at the same length returns 409", async () => {
     const { agent, csrf } = await signedInAgent(env, "eve");
-    const today = todayUtc();
+    const today = todayEt();
     const expected = dailyHands(today, 5);
     const hands = expected.map((h) => ({
       cards: h.cards,
@@ -158,7 +158,7 @@ describe("cribbage game routes", () => {
 
   it("rejects daily POST with cards that don't match the server seed", async () => {
     const { agent, csrf } = await signedInAgent(env, "frank");
-    const today = todayUtc();
+    const today = todayEt();
     // Submit the wrong hands (a perfect-29 set isn't what today's seed produces).
     const res = await agent
       .post("/api/cribbage/games")
@@ -186,7 +186,7 @@ describe("cribbage game routes", () => {
   it("daily leaderboard surfaces today's completed runs", async () => {
     const { agent: a1, csrf: c1 } = await signedInAgent(env, "hugo");
     const { agent: a2, csrf: c2 } = await signedInAgent(env, "ivy");
-    const today = todayUtc();
+    const today = todayEt();
     const expected = dailyHands(today, 5);
     const mk = (ms: number) =>
       expected.map((h) => ({ cards: h.cards, cut: h.cut, attempts: 1, time_ms: ms }));

@@ -2,11 +2,11 @@
   {
     "slug": "jms-website",
     "name": "JMS Website",
-    "overview": "This site. React + TypeScript front end, Express + SQLite API, Nginx reverse proxy, all containerized with Docker. Hosts a hero/CV landing page, a paginated projects page with tag filters, and per-project threaded comments behind sign-in.",
-    "contributions": "Sole author. Built the full stack, wrote the Docker and Nginx setup, and authored the projects-page refactor that introduced pagination and tag filters.",
-    "documentation": "See the README in the repo for stack details, repository layout, and local-development instructions.",
+    "overview": "This site. React + TypeScript front end, Express + SQLite API, Nginx reverse proxy, all containerized with Docker. Hosts a hero/CV landing page, a paginated projects page with tag filters, per-project threaded comments behind sign-in, and a daily cribbage counting speed test with a public leaderboard, per-user profile stats (best daily / best overall / recent games), and a per-game drill-down page.",
+    "contributions": "Sole author. Built the full stack, wrote the Docker and Nginx setup, designed the cribbage speed-test (deterministic daily seed, lives-based scoring, server-validated submissions), and tuned the mobile layout, profile-stats tabs, and SEO copy.",
+    "documentation": "See the top-level README for the project overview and quickstart, and setup/README.md for the production deployment, TLS, admin role, and troubleshooting guide.",
     "repoUrl": "https://github.com/alegomonkey/JMS_Website",
-    "tags": ["react", "typescript", "express", "sqlite", "docker", "nginx", "fullstack"]
+    "tags": ["react", "typescript", "express", "sqlite", "docker", "nginx", "fullstack", "cribbage"]
   },
   {
     "slug": "gaming-imbd-documentation",

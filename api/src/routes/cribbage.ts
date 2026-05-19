@@ -11,7 +11,7 @@ import {
   saveGame,
   type RoundCount,
 } from "../services/cribbageService.js";
-import { dailyHands, todayUtc } from "../services/cribbageDeck.js";
+import { dailyHands, todayEt } from "../services/cribbageDeck.js";
 
 const SUIT = "(?:clubs|diamonds|hearts|spades)";
 const RANK = "(?:[2-9]|10|A|J|Q|K)";
@@ -76,9 +76,9 @@ export function cribbageRouter(db: DB): Router {
       const roundCount = body.round_count as RoundCount;
 
       if (body.daily_date) {
-        const today = todayUtc();
+        const today = todayEt();
         if (body.daily_date !== today) {
-          next(httpError(400, "daily_date must be today (UTC)"));
+          next(httpError(400, "daily_date must be today (ET)"));
           return;
         }
         // Cheat check: dealt cards must match the server-derived sequence.
@@ -109,12 +109,12 @@ export function cribbageRouter(db: DB): Router {
     }
   });
 
-  // Public daily-leaderboard for today (UTC).
+  // Public daily-leaderboard for today (Eastern Time).
   r.get("/cribbage/daily/leaderboard", (req, res, next) => {
     try {
       const { rounds } = leaderboardQuerySchema.parse(req.query);
       const target = (rounds ?? 5) as RoundCount;
-      const today = todayUtc();
+      const today = todayEt();
       const entries = dailyLeaderboard(db, target, today);
       res.json({ round_count: target, date: today, entries });
     } catch (err) {
@@ -143,7 +143,7 @@ export function cribbageRouter(db: DB): Router {
     try {
       const { rounds } = dailyQuerySchema.parse(req.query);
       const target = rounds as RoundCount;
-      const today = todayUtc();
+      const today = todayEt();
       const hands = dailyHands(today, target);
       const userId = req.session.userId;
       const played = userId ? hasPlayedDaily(db, userId, target, today) : false;

@@ -200,15 +200,20 @@ export function mulberry32(seed: number): Rng {
 
 // Per-daily RNG. Distinct round_count values produce independent streams so
 // the 5/20/100 dailies for a given day share no hands.
-export function seededDailyRng(dateUtc: string, roundCount: number): Rng {
-  const seed = fnv1a32(`daily|${dateUtc}|${roundCount}`);
+export function seededDailyRng(date: string, roundCount: number): Rng {
+  const seed = fnv1a32(`daily|${date}|${roundCount}`);
   return mulberry32(seed);
 }
 
-// "YYYY-MM-DD" in UTC for today. Exposed so callers can label daily entries.
-export function todayUtc(now: Date = new Date()): string {
-  const y = now.getUTCFullYear();
-  const m = String(now.getUTCMonth() + 1).padStart(2, "0");
-  const d = String(now.getUTCDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
+export const DAILY_ZONE = "America/New_York";
+
+// "YYYY-MM-DD" in Eastern Time (DST-aware) for today. The string is the seed
+// key for the daily challenge and the value stored in `cribbage_games.daily_date`.
+export function todayEt(now: Date = new Date()): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: DAILY_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(now);
 }
