@@ -8,13 +8,20 @@ import { votesRouter } from "./routes/votes.js";
 import { cribbageRouter } from "./routes/cribbage.js";
 import { usersRouter } from "./routes/users.js";
 import { profileCommentsRouter } from "./routes/profileComments.js";
+import { oauthRouter, enabledProviders } from "./routes/oauth.js";
 import { verifyCsrf } from "./middleware/csrf.js";
 import { errorHandler } from "./middleware/errorHandler.js";
+import type { ProviderCredentials } from "./services/oauthProviders.js";
+import type { OauthProvider } from "./middleware/auth.js";
 
 export interface AppConfig {
   sessionSecret: string;
   isProd: boolean;
   sessionStore: session.Store;
+  oauth: {
+    baseUrl: string;
+    providers: Partial<Record<OauthProvider, ProviderCredentials>>;
+  };
 }
 
 export function createApp(db: DB, cfg: AppConfig): Express {
@@ -67,7 +74,9 @@ export function createApp(db: DB, cfg: AppConfig): Express {
     res.json({ ok: true });
   });
 
-  app.use("/api/auth", authRouter(db));
+  const providersEnabled = enabledProviders(cfg.oauth);
+  app.use("/api/auth", authRouter(db, { providersEnabled }));
+  app.use("/api/auth", oauthRouter(db, cfg.oauth));
   app.use("/api", verifyCsrf, commentsRouter(db));
   app.use("/api", verifyCsrf, votesRouter(db));
   app.use("/api", verifyCsrf, cribbageRouter(db));

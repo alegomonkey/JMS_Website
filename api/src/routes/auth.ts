@@ -5,18 +5,33 @@ import { ensureCsrfToken } from "../middleware/csrf.js";
 import { credentialsSchema } from "../schemas/index.js";
 import { createUser, findUser, UsernameTakenError, verifyCredentials } from "../services/userService.js";
 import { httpError } from "../middleware/errorHandler.js";
+import { listOauthLinks } from "../services/oauthService.js";
+import type { OauthProvider } from "../middleware/auth.js";
 
-export function authRouter(db: DB): Router {
+export interface AuthRouterDeps {
+  providersEnabled: Record<OauthProvider, boolean>;
+}
+
+export function authRouter(db: DB, deps: AuthRouterDeps): Router {
   const r = Router();
 
   r.get("/me", (req, res) => {
     const id = req.session.userId;
     if (!id) {
-      res.json({ user: null });
+      res.json({
+        user: null,
+        providersEnabled: deps.providersEnabled,
+        linkedProviders: [],
+      });
       return;
     }
     const user = findUser(db, id);
-    res.json({ user });
+    const links = listOauthLinks(db, id).map((l) => l.provider);
+    res.json({
+      user,
+      providersEnabled: deps.providersEnabled,
+      linkedProviders: links,
+    });
   });
 
   r.get("/csrf", (req, res) => {

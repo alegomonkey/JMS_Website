@@ -12,7 +12,7 @@ export interface User {
 interface UserRow {
   id: number;
   username: string;
-  password_hash: string;
+  password_hash: string | null;
   role: Role;
 }
 
@@ -52,8 +52,11 @@ export async function verifyCredentials(
   const row = db
     .prepare("SELECT id, username, password_hash, role FROM users WHERE username = ?")
     .get(username) as UserRow | undefined;
-  if (!row) {
-    // Constant-time-ish: still hash to avoid leaking existence via timing.
+  if (!row || row.password_hash === null) {
+    // OAuth-only accounts have no password and must look indistinguishable
+    // from "user does not exist" to avoid leaking which usernames are
+    // OAuth-only. Hash a throwaway to keep timing roughly aligned with
+    // the success path.
     await argon2.hash(password, ARGON_OPTS).catch(() => undefined);
     return null;
   }

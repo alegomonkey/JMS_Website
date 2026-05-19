@@ -1,14 +1,22 @@
 import { z } from "zod";
 
+export const usernameSchema = z
+  .string()
+  .trim()
+  .min(3)
+  .max(32)
+  .regex(/^[a-zA-Z0-9_-]+$/, "username may contain letters, digits, underscore, hyphen");
+
 export const credentialsSchema = z
   .object({
-    username: z
-      .string()
-      .trim()
-      .min(3)
-      .max(32)
-      .regex(/^[a-zA-Z0-9_-]+$/, "username may contain letters, digits, underscore, hyphen"),
+    username: usernameSchema,
     password: z.string().min(8).max(128),
+  })
+  .strict();
+
+export const oauthCompleteSchema = z
+  .object({
+    username: usernameSchema,
   })
   .strict();
 

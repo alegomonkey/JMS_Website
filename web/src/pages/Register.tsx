@@ -2,10 +2,11 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/auth";
 import { useDocumentTitle } from "../lib/useDocumentTitle";
+import { OauthSection } from "../components/OauthSection";
 
 export function Register(): JSX.Element {
   useDocumentTitle("Register — JMS");
-  const { register } = useAuth();
+  const { register, providersEnabled } = useAuth();
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -67,6 +68,7 @@ export function Register(): JSX.Element {
           Create account
         </button>
       </form>
+      <OauthSection providersEnabled={providersEnabled} mode="signin" />
       <p>
         Already have one? <a href="/signin">Sign in</a>.
       </p>

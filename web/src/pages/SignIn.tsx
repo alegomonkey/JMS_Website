@@ -1,17 +1,31 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../lib/auth";
 import { useDocumentTitle } from "../lib/useDocumentTitle";
+import { OauthSection } from "../components/OauthSection";
+import oauthStyles from "../components/OauthSection.module.css";
+
+const OAUTH_ERROR_COPY: Record<string, string> = {
+  oauth_state: "Sign-in via that provider was interrupted. Please try again.",
+  oauth_code: "Sign-in via that provider was interrupted. Please try again.",
+  oauth_exchange: "We couldn't reach that provider. Please try again.",
+  oauth_unconfigured: "That sign-in method is not available right now.",
+  login_required: "Please sign in first.",
+};
 
 export function SignIn(): JSX.Element {
   useDocumentTitle("Sign in — JMS");
-  const { signIn } = useAuth();
+  const { signIn, providersEnabled } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const errorId = "signin-error";
+
+  const errCode = searchParams.get("err");
+  const oauthError = errCode ? OAUTH_ERROR_COPY[errCode] ?? null : null;
 
   async function submit(e: React.FormEvent): Promise<void> {
     e.preventDefault();
@@ -30,6 +44,11 @@ export function SignIn(): JSX.Element {
   return (
     <div>
       <h1>Sign in</h1>
+      {oauthError && (
+        <p role="alert" className={oauthStyles.errorBanner}>
+          {oauthError}
+        </p>
+      )}
       <form onSubmit={submit} aria-describedby={error ? errorId : undefined}>
         <label htmlFor="username">Username</label>
         <input
@@ -63,6 +82,7 @@ export function SignIn(): JSX.Element {
           Sign in
         </button>
       </form>
+      <OauthSection providersEnabled={providersEnabled} mode="signin" />
       <p>
         Need an account? <a href="/register">Register</a>.
       </p>

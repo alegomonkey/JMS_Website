@@ -7,6 +7,7 @@ import { ProjectDetail } from "./pages/ProjectDetail";
 import { Settings } from "./pages/Settings";
 import { SignIn } from "./pages/SignIn";
 import { Register } from "./pages/Register";
+import { AuthComplete } from "./pages/AuthComplete";
 import { Profile } from "./pages/Profile";
 import { CribbageStart } from "./pages/cribbage/CribbageStart";
 import { CribbagePlay } from "./pages/cribbage/CribbagePlay";
@@ -31,6 +32,7 @@ export function App(): JSX.Element {
             <Route path="/settings" element={<Settings />} />
             <Route path="/signin" element={<SignIn />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/auth/complete" element={<AuthComplete />} />
             <Route path="/profile/:username" element={<Profile />} />
             <Route path="/cribbage" element={<CribbageStart />} />
             <Route path="/cribbage/play" element={<CribbagePlay />} />

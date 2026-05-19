@@ -1,0 +1,54 @@
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1.5rem 0 1rem;
+  color: var(--bright);
+  text-transform: lowercase;
+  font-size: 0.85em;
+}
+
+.divider::before,
+.divider::after {
+  content: "";
+  flex: 1;
+  border-top: 0.0625rem solid var(--border);
+}
+
+.buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0 0 1rem;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 0.0625rem solid var(--border);
+  background: var(--muted);
+  color: var(--fg);
+  text-decoration: none;
+  padding: 0.6rem 0.9rem;
+  min-height: 2.75rem;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: 500;
+}
+
+.button:hover,
+.button:focus-visible {
+  border-color: var(--bright);
+  background: var(--bright);
+  color: var(--bg);
+  text-decoration: none;
+}
+
+.errorBanner {
+  border: 0.0625rem solid var(--border);
+  background: var(--muted);
+  padding: 0.5rem 0.75rem;
+  margin: 0.75rem 0;
+}

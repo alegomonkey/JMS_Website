@@ -59,6 +59,8 @@ describe("auth routes", () => {
 
   it("returns null user when not signed in", async () => {
     const res = await request(env.app).get("/api/auth/me");
-    expect(res.body).toEqual({ user: null });
+    expect(res.body.user).toBeNull();
+    expect(res.body.providersEnabled).toEqual({ github: false, google: false });
+    expect(res.body.linkedProviders).toEqual([]);
   });
 });

@@ -4,16 +4,23 @@ import { join } from "node:path";
 import type { Express } from "express";
 import session from "express-session";
 import { createApp } from "../src/app.js";
-import { openDb, runMigrations } from "../src/db.js";
+import { openDb, runMigrations, type DB } from "../src/db.js";
 import { setRole } from "../src/services/userService.js";
+import type { ProviderCredentials } from "../src/services/oauthProviders.js";
+import type { OauthProvider } from "../src/middleware/auth.js";
 
 export interface TestEnv {
   app: Express;
+  db: DB;
   cleanup: () => void;
   promote: (username: string) => void;
 }
 
-export function makeTestApp(): TestEnv {
+export interface TestAppOpts {
+  oauthProviders?: Partial<Record<OauthProvider, ProviderCredentials>>;
+}
+
+export function makeTestApp(opts: TestAppOpts = {}): TestEnv {
   const dir = mkdtempSync(join(tmpdir(), "jms-test-"));
   const dbPath = join(dir, "test.db");
   const db = openDb(dbPath);
@@ -25,9 +32,14 @@ export function makeTestApp(): TestEnv {
     sessionSecret: "test-secret-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     isProd: false,
     sessionStore,
+    oauth: {
+      baseUrl: "http://localhost:5173",
+      providers: opts.oauthProviders ?? {},
+    },
   });
   return {
     app,
+    db,
     cleanup: () => {
       db.close();
       rmSync(dir, { recursive: true, force: true });

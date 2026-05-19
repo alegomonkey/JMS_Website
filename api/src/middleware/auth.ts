@@ -28,10 +28,23 @@ export function requireAdmin(db: DB) {
   };
 }
 
+export type OauthProvider = "github" | "google";
+
+export type OauthIntent = "signin" | "link";
+
+export interface PendingOauth {
+  provider: OauthProvider;
+  providerUserId: string;
+  suggestedUsername: string;
+}
+
 declare module "express-session" {
   interface SessionData {
     userId?: number;
     username?: string;
     csrfToken?: string;
+    oauthState?: string;
+    oauthIntent?: OauthIntent;
+    pendingOauth?: PendingOauth;
   }
 }
