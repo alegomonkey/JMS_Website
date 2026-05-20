@@ -1,6 +1,6 @@
 .header {
   display: flex;
-  align-items: baseline;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 0.8rem;
   flex-wrap: wrap;
@@ -9,6 +9,87 @@
 
 .header h1 {
   margin: 0;
+}
+
+.headerCol {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.headerColRight {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  align-items: flex-end;
+  text-align: right;
+}
+
+.headerCol p,
+.headerColRight p {
+  margin: 0;
+}
+
+.viewToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 2.75rem;
+  margin: 0.5rem 0;
+}
+
+.viewToggle input[type="checkbox"] {
+  appearance: none;
+  width: 2.75rem;
+  height: 1.5rem;
+  min-height: 1.5rem;
+  background: var(--muted);
+  border: 0.0625rem solid var(--border);
+  border-radius: 1rem;
+  position: relative;
+  cursor: pointer;
+  margin: 0;
+}
+
+.viewToggle input[type="checkbox"]:hover {
+  border-color: var(--bright);
+}
+
+.viewToggle input[type="checkbox"]::before {
+  content: "";
+  position: absolute;
+  top: 0.125rem;
+  left: 0.125rem;
+  width: 1.125rem;
+  height: 1.125rem;
+  background: var(--bright);
+  border-radius: 50%;
+  transition: transform 0.15s ease;
+}
+
+.viewToggle input[type="checkbox"]:checked::before {
+  transform: translateX(1.25rem);
+}
+
+.badgeDaily,
+.badgeFreeplay {
+  display: inline-block;
+  padding: 0.1rem 0.5rem;
+  font-size: 0.75rem;
+  border: 0.0625rem solid var(--border);
+  border-radius: 0.25rem;
+}
+
+.badgeDaily {
+  background: var(--bright);
+  color: var(--bg);
+  border-color: var(--bright);
+  font-weight: bold;
+}
+
+.badgeFreeplay {
+  background: var(--muted);
+  color: var(--fg);
 }
 
 .tabs {

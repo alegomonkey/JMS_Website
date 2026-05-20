@@ -2,15 +2,8 @@ import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useDocumentTitle } from "../../lib/useDocumentTitle";
 import { fetchGame, type GameDetail, type GameHand } from "../../lib/cribbageApi";
+import { formatMs } from "../../lib/formatMs";
 import styles from "./CribbageGameDetail.module.css";
-
-function formatMs(ms: number): string {
-  const totalSeconds = ms / 1000;
-  if (totalSeconds < 60) return `${totalSeconds.toFixed(2)}s`;
-  const m = Math.floor(totalSeconds / 60);
-  const s = totalSeconds - m * 60;
-  return `${m}m ${s.toFixed(1)}s`;
-}
 
 const RANK_SHORT: Record<string, string> = {
   A: "A",

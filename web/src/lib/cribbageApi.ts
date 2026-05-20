@@ -49,6 +49,7 @@ export interface LeaderboardEntry {
   total_ms: number;
   mistakes: number;
   created_at: number;
+  daily_date: string | null;
 }
 
 export async function fetchDailyLeaderboard(
@@ -60,6 +61,16 @@ export async function fetchDailyLeaderboard(
     entries: LeaderboardEntry[];
   }>(`/api/cribbage/daily/leaderboard?rounds=${rounds}`);
   return { date: res.date, entries: res.entries };
+}
+
+export async function fetchAllTimeLeaderboard(
+  rounds: RoundCount,
+): Promise<{ entries: LeaderboardEntry[] }> {
+  const res = await apiRequest<{
+    round_count: RoundCount;
+    entries: LeaderboardEntry[];
+  }>(`/api/cribbage/leaderboard?rounds=${rounds}`);
+  return { entries: res.entries };
 }
 
 export interface DailyInfo {
@@ -123,9 +134,23 @@ export interface RecentGame {
   created_at: number;
 }
 
-export async function fetchRecentGames(username: string): Promise<RecentGame[]> {
+export interface RecentGamesOpts {
+  roundCount?: RoundCount;
+  limit?: number;
+  completedOnly?: boolean;
+}
+
+export async function fetchRecentGames(
+  username: string,
+  opts: RecentGamesOpts = {},
+): Promise<RecentGame[]> {
+  const params = new URLSearchParams();
+  if (opts.roundCount) params.set("round_count", String(opts.roundCount));
+  if (opts.limit) params.set("limit", String(opts.limit));
+  if (opts.completedOnly) params.set("completed", "1");
+  const qs = params.toString();
   const res = await apiRequest<{ games: RecentGame[] }>(
-    `/api/users/${encodeURIComponent(username)}/games`,
+    `/api/users/${encodeURIComponent(username)}/games${qs ? `?${qs}` : ""}`,
   );
   return res.games;
 }

@@ -204,4 +204,83 @@ describe("cribbage game routes", () => {
     expect(lb.status).toBe(200);
     expect(lb.body.entries.map((e: { username: string }) => e.username)).toEqual(["ivy", "hugo"]);
   });
+
+  it("all-time leaderboard mixes daily + free-play, sorted by total_ms", async () => {
+    const { agent: a1, csrf: c1 } = await signedInAgent(env, "kara");
+    const { agent: a2, csrf: c2 } = await signedInAgent(env, "liam");
+    const today = todayEt();
+
+    // kara: slow free-play run (5 × 2000ms = 10000ms total)
+    const slow = Array(5)
+      .fill(0)
+      .map(() => ({ ...perfectHand(), time_ms: 2000 }));
+    await a1
+      .post("/api/cribbage/games")
+      .set("X-CSRF-Token", c1)
+      .send({ round_count: 5, hands: slow, completed: true, daily_date: null });
+
+    // liam: fast daily run (5 × 800ms = 4000ms total)
+    const fastDaily = dailyHands(today, 5).map((h) => ({
+      cards: h.cards,
+      cut: h.cut,
+      attempts: 1,
+      time_ms: 800,
+    }));
+    await a2
+      .post("/api/cribbage/games")
+      .set("X-CSRF-Token", c2)
+      .send({ round_count: 5, hands: fastDaily, completed: true, daily_date: today });
+
+    const lb = await request(env.app).get("/api/cribbage/leaderboard?rounds=5");
+    expect(lb.status).toBe(200);
+    expect(lb.body.entries.map((e: { username: string }) => e.username)).toEqual([
+      "liam",
+      "kara",
+    ]);
+    // daily_date is surfaced so the client can badge the source.
+    const liam = lb.body.entries.find((e: { username: string }) => e.username === "liam");
+    const kara = lb.body.entries.find((e: { username: string }) => e.username === "kara");
+    expect(liam.daily_date).toBe(today);
+    expect(kara.daily_date).toBeNull();
+  });
+
+  it("all-time leaderboard excludes did-not-finish (completed=0) runs", async () => {
+    const { agent, csrf } = await signedInAgent(env, "mona");
+    // 3 of 5 hands, completed=false
+    const partial = Array(3)
+      .fill(0)
+      .map(() => perfectHand());
+    await agent
+      .post("/api/cribbage/games")
+      .set("X-CSRF-Token", csrf)
+      .send({ round_count: 5, hands: partial, completed: false, daily_date: null });
+
+    const lb = await request(env.app).get("/api/cribbage/leaderboard?rounds=5");
+    expect(lb.status).toBe(200);
+    expect(lb.body.entries).toHaveLength(0);
+  });
+
+  it("user games endpoint filters by round_count", async () => {
+    const { agent, csrf } = await signedInAgent(env, "nina");
+    await agent
+      .post("/api/cribbage/games")
+      .set("X-CSRF-Token", csrf)
+      .send({ round_count: 5, hands: fivePerfect(), completed: true, daily_date: null });
+    const twenty = Array(20).fill(0).map(() => perfectHand());
+    await agent
+      .post("/api/cribbage/games")
+      .set("X-CSRF-Token", csrf)
+      .send({ round_count: 20, hands: twenty, completed: true, daily_date: null });
+
+    const all = await request(env.app).get("/api/users/nina/games");
+    expect(all.body.games).toHaveLength(2);
+
+    const only20 = await request(env.app).get("/api/users/nina/games?round_count=20");
+    expect(only20.body.games).toHaveLength(1);
+    expect(only20.body.games[0].round_count).toBe(20);
+
+    const only5 = await request(env.app).get("/api/users/nina/games?round_count=5&completed=1");
+    expect(only5.body.games).toHaveLength(1);
+    expect(only5.body.games[0].round_count).toBe(5);
+  });
 });

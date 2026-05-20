@@ -157,7 +157,7 @@ export function CribbageStart(): JSX.Element {
       <nav aria-label="Cribbage navigation" className={styles.nav}>
         <Link to="/cribbage/help">How scoring works</Link>
         <Link to="/cribbage/records">Records leaderboard</Link>
-        {user && <Link to={`/profile/${encodeURIComponent(user.username)}`}>Your profile</Link>}
+        {user && <Link to={`/profile/${encodeURIComponent(user.username)}`}>Your records</Link>}
       </nav>
     </div>
   );

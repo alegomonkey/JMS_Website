@@ -123,6 +123,7 @@ export interface LeaderboardRow {
   total_ms: number;
   mistakes: number;
   created_at: number;
+  daily_date: string | null;
 }
 
 // Today's daily leaderboard for a given length. Only completed runs count.
@@ -134,13 +135,32 @@ export function dailyLeaderboard(
 ): LeaderboardRow[] {
   const rows = db
     .prepare(
-      `SELECT g.id, u.username, g.total_ms, g.mistakes, g.created_at
+      `SELECT g.id, u.username, g.total_ms, g.mistakes, g.created_at, g.daily_date
        FROM cribbage_games g JOIN users u ON u.id = g.user_id
        WHERE g.daily_date = ? AND g.round_count = ? AND g.completed = 1
        ORDER BY g.total_ms ASC, g.mistakes ASC, g.created_at ASC
        LIMIT ?`,
     )
     .all(dailyDate, roundCount, limit) as Array<Omit<LeaderboardRow, "rank">>;
+  return rows.map((r, i) => ({ rank: i + 1, ...r }));
+}
+
+// All-time leaderboard for a given length: fastest completed runs across all
+// users, mixing daily and free-play. Uses idx_cribbage_games_lb.
+export function allTimeLeaderboard(
+  db: DB,
+  roundCount: RoundCount,
+  limit = 20,
+): LeaderboardRow[] {
+  const rows = db
+    .prepare(
+      `SELECT g.id, u.username, g.total_ms, g.mistakes, g.created_at, g.daily_date
+       FROM cribbage_games g JOIN users u ON u.id = g.user_id
+       WHERE g.round_count = ? AND g.completed = 1
+       ORDER BY g.total_ms ASC, g.mistakes ASC, g.created_at ASC
+       LIMIT ?`,
+    )
+    .all(roundCount, limit) as Array<Omit<LeaderboardRow, "rank">>;
   return rows.map((r, i) => ({ rank: i + 1, ...r }));
 }
 
@@ -353,13 +373,35 @@ function summarizeHands(handsJson: string): string {
   }
 }
 
-export function recentGamesForUser(db: DB, userId: number, limit = 20): RecentGame[] {
+export interface RecentGamesOpts {
+  limit?: number;
+  roundCount?: RoundCount;
+  completedOnly?: boolean;
+}
+
+export function recentGamesForUser(
+  db: DB,
+  userId: number,
+  opts: RecentGamesOpts = {},
+): RecentGame[] {
+  const limit = opts.limit ?? 20;
+  const conditions = ["user_id = ?"];
+  const params: Array<number | string> = [userId];
+  if (opts.roundCount) {
+    conditions.push("round_count = ?");
+    params.push(opts.roundCount);
+  }
+  if (opts.completedOnly) {
+    conditions.push("completed = 1");
+  }
+  params.push(limit);
   const rows = db
     .prepare(
       `SELECT id, round_count, total_ms, mistakes, hands_json, created_at, completed, daily_date
-       FROM cribbage_games WHERE user_id = ? ORDER BY created_at DESC, id DESC LIMIT ?`,
+       FROM cribbage_games WHERE ${conditions.join(" AND ")}
+       ORDER BY created_at DESC, id DESC LIMIT ?`,
     )
-    .all(userId, limit) as Array<{
+    .all(...params) as Array<{
     id: number;
     round_count: number;
     total_ms: number;

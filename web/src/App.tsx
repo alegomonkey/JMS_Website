@@ -14,6 +14,7 @@ import { CribbagePlay } from "./pages/cribbage/CribbagePlay";
 import { CribbageRecords } from "./pages/cribbage/CribbageRecords";
 import { CribbageGameDetail } from "./pages/cribbage/CribbageGameDetail";
 import { CribbageHelp } from "./pages/cribbage/CribbageHelp";
+import { CribbageImprovementChart } from "./pages/cribbage/CribbageImprovementChart";
 import { useDocumentTitle } from "./lib/useDocumentTitle";
 
 export function App(): JSX.Element {
@@ -34,6 +35,7 @@ export function App(): JSX.Element {
             <Route path="/register" element={<Register />} />
             <Route path="/auth/complete" element={<AuthComplete />} />
             <Route path="/profile/:username" element={<Profile />} />
+            <Route path="/profile/:username/chart" element={<CribbageImprovementChart />} />
             <Route path="/cribbage" element={<CribbageStart />} />
             <Route path="/cribbage/play" element={<CribbagePlay />} />
             <Route path="/cribbage/records" element={<CribbageRecords />} />

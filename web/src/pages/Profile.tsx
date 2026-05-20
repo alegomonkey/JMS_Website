@@ -15,6 +15,7 @@ import {
 } from "../lib/profileComments";
 import { ProfileCommentForm } from "../components/ProfileCommentForm";
 import { ProfileCommentList } from "../components/ProfileCommentList";
+import { formatMs } from "../lib/formatMs";
 import styles from "./Profile.module.css";
 
 type ProfileState =
@@ -24,14 +25,6 @@ type ProfileState =
   | { status: "error"; message: string };
 
 type StatsTab = "daily" | "overall" | "recent";
-
-function formatMs(ms: number): string {
-  const totalSeconds = ms / 1000;
-  if (totalSeconds < 60) return `${totalSeconds.toFixed(2)}s`;
-  const m = Math.floor(totalSeconds / 60);
-  const s = totalSeconds - m * 60;
-  return `${m}m ${s.toFixed(1)}s`;
-}
 
 export function Profile(): JSX.Element {
   const { username = "" } = useParams<{ username: string }>();
@@ -190,40 +183,48 @@ export function Profile(): JSX.Element {
         <h2 id="stats-heading" className={styles.srOnly}>
           Stats
         </h2>
-        <div role="tablist" aria-label="Stats" className={styles.tabs}>
-          <button
-            type="button"
-            role="tab"
-            id="tab-daily"
-            aria-selected={tab === "daily"}
-            aria-controls="tabpanel-daily"
-            onClick={() => setTab("daily")}
-            className={tab === "daily" ? styles.active : ""}
+        <div className={styles.tabsRow}>
+          <div role="tablist" aria-label="Stats" className={styles.tabs}>
+            <button
+              type="button"
+              role="tab"
+              id="tab-daily"
+              aria-selected={tab === "daily"}
+              aria-controls="tabpanel-daily"
+              onClick={() => setTab("daily")}
+              className={tab === "daily" ? styles.active : ""}
+            >
+              Best daily
+            </button>
+            <button
+              type="button"
+              role="tab"
+              id="tab-overall"
+              aria-selected={tab === "overall"}
+              aria-controls="tabpanel-overall"
+              onClick={() => setTab("overall")}
+              className={tab === "overall" ? styles.active : ""}
+            >
+              Best overall
+            </button>
+            <button
+              type="button"
+              role="tab"
+              id="tab-recent"
+              aria-selected={tab === "recent"}
+              aria-controls="tabpanel-recent"
+              onClick={() => setTab("recent")}
+              className={tab === "recent" ? styles.active : ""}
+            >
+              Recent games
+            </button>
+          </div>
+          <Link
+            to={`/profile/${encodeURIComponent(profile.user.username)}/chart`}
+            className={styles.chartLink}
           >
-            Best daily
-          </button>
-          <button
-            type="button"
-            role="tab"
-            id="tab-overall"
-            aria-selected={tab === "overall"}
-            aria-controls="tabpanel-overall"
-            onClick={() => setTab("overall")}
-            className={tab === "overall" ? styles.active : ""}
-          >
-            Best overall
-          </button>
-          <button
-            type="button"
-            role="tab"
-            id="tab-recent"
-            aria-selected={tab === "recent"}
-            aria-controls="tabpanel-recent"
-            onClick={() => setTab("recent")}
-            className={tab === "recent" ? styles.active : ""}
-          >
-            Recent games
-          </button>
+            Improvement chart →
+          </Link>
         </div>
 
         {tab === "daily" && (

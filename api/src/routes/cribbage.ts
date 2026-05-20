@@ -5,6 +5,7 @@ import { requireAuth } from "../middleware/auth.js";
 import { writeLimiter } from "../middleware/rateLimit.js";
 import { httpError } from "../middleware/errorHandler.js";
 import {
+  allTimeLeaderboard,
   dailyLeaderboard,
   gameById,
   hasPlayedDaily,
@@ -117,6 +118,19 @@ export function cribbageRouter(db: DB): Router {
       const today = todayEt();
       const entries = dailyLeaderboard(db, target, today);
       res.json({ round_count: target, date: today, entries });
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  // Public all-time leaderboard: fastest completed runs ever for a length,
+  // mixing daily and free-play.
+  r.get("/cribbage/leaderboard", (req, res, next) => {
+    try {
+      const { rounds } = leaderboardQuerySchema.parse(req.query);
+      const target = (rounds ?? 5) as RoundCount;
+      const entries = allTimeLeaderboard(db, target);
+      res.json({ round_count: target, entries });
     } catch (err) {
       next(err);
     }

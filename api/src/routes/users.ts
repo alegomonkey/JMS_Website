@@ -4,7 +4,12 @@ import type { DB } from "../db.js";
 import { requireAuth } from "../middleware/auth.js";
 import { writeLimiter } from "../middleware/rateLimit.js";
 import { httpError } from "../middleware/errorHandler.js";
-import { bestDailyForUser, bestTimesForUser, recentGamesForUser } from "../services/cribbageService.js";
+import {
+  bestDailyForUser,
+  bestTimesForUser,
+  recentGamesForUser,
+  type RoundCount,
+} from "../services/cribbageService.js";
 
 const usernameParamSchema = z
   .string()
@@ -12,6 +17,17 @@ const usernameParamSchema = z
   .min(3)
   .max(32)
   .regex(/^[a-zA-Z0-9_-]+$/);
+
+const roundCountSchema = z.union([z.literal(5), z.literal(20), z.literal(100)]);
+
+const gamesQuerySchema = z
+  .object({
+    round_count: z.coerce.number().pipe(roundCountSchema).optional(),
+    limit: z.coerce.number().int().min(1).max(1000).optional(),
+    // string, not z.coerce.boolean() — the latter maps "false" → true.
+    completed: z.enum(["true", "1", "false", "0"]).optional(),
+  })
+  .strict();
 
 const bioSchema = z.object({ bio: z.string().max(500) }).strict();
 
@@ -55,6 +71,7 @@ export function usersRouter(db: DB): Router {
   r.get("/users/:username/games", (req, res, next) => {
     try {
       const username = usernameParamSchema.parse(req.params.username);
+      const query = gamesQuerySchema.parse(req.query);
       const row = db
         .prepare("SELECT id FROM users WHERE username = ?")
         .get(username) as { id: number } | undefined;
@@ -62,7 +79,11 @@ export function usersRouter(db: DB): Router {
         next(httpError(404, "user not found"));
         return;
       }
-      const games = recentGamesForUser(db, row.id, 20);
+      const games = recentGamesForUser(db, row.id, {
+        limit: query.limit ?? 20,
+        roundCount: query.round_count as RoundCount | undefined,
+        completedOnly: query.completed === "true" || query.completed === "1",
+      });
       res.json({ games });
     } catch (err) {
       next(err);
