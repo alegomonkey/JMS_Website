@@ -155,6 +155,11 @@ export function NavBar(): JSX.Element {
               Cribbage
             </NavLink>
           </li>
+          <li>
+            <NavLink to="/team-formation" className={linkClass}>
+              Team Formation
+            </NavLink>
+          </li>
         </ul>
         <div className={styles.spacer} />
         <ul className={styles.bottom}>
