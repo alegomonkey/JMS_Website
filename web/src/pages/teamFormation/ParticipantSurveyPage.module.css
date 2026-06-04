@@ -6,7 +6,7 @@
 
 .loading {
   text-align: center;
-  color: var(--muted);
+  color: var(--border);
   padding: 4rem 0;
 }
 
@@ -17,7 +17,7 @@
 }
 
 .subText {
-  color: var(--muted);
+  color: var(--border);
   margin: -1rem 0 1.5rem;
 }
 
@@ -110,7 +110,7 @@
 
 .helper {
   font-size: 0.875rem;
-  color: var(--muted);
+  color: var(--border);
   margin: 0.5rem 0 1.5rem;
 }
 
@@ -130,7 +130,7 @@
 
 .progressNote {
   font-size: 0.875rem;
-  color: var(--muted);
+  color: var(--border);
   margin: -0.75rem 0 1.5rem;
 }
 
@@ -215,7 +215,8 @@
   min-width: 2rem;
   text-align: right;
   font-variant-numeric: tabular-nums;
-  color: var(--muted);
+  color: var(--bright);
+  font-weight: 600;
 }
 
 .scaleRow {
@@ -226,7 +227,7 @@
 
 .scaleLabel {
   font-size: 0.875rem;
-  color: var(--muted);
+  color: var(--border);
   white-space: nowrap;
 }
 
@@ -253,7 +254,7 @@
 
 .charCount {
   font-size: 0.8125rem;
-  color: var(--muted);
+  color: var(--border);
   text-align: right;
   margin: 0;
 }
@@ -284,7 +285,7 @@
   background: none;
   border: none;
   cursor: pointer;
-  color: var(--muted);
+  color: var(--border);
   font-size: 1rem;
   line-height: 1;
   padding: 0 0.125rem;
@@ -475,7 +476,7 @@
 /* ── Utility ─────────────────────────────────────────────────────────────── */
 
 .muted {
-  color: var(--muted);
+  color: var(--border);
   font-size: 0.9375rem;
 }
 
