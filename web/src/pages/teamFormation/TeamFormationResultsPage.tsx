@@ -984,7 +984,7 @@ function AggregatePanel({
       </summary>
       {loading && <p className={styles.muted}>Loading stats…</p>}
       {error && <p className={styles.errorMsg}>{error}</p>}
-      {data && data.map((q) => <AggregateQuestion key={q.question_id} q={q} />)}
+      {data && data.map((q) => <AggregateQuestion key={`${q.question_id}-${q.block_type}`} q={q} />)}
     </details>
   );
 }

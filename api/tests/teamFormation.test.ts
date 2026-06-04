@@ -342,7 +342,7 @@ describe("team formation routes", () => {
     expect(Array.isArray(res.body.aggregate)).toBe(true);
   });
 
-  it("export returns CSV with Team Name header", async () => {
+  it("export returns multi-section CSV (teams, responses, stats)", async () => {
     const { agent, csrf } = await signedInAgent(env, "tara");
     const { sessionId } = await launchedSession(env, agent, csrf);
     await agent.post(`/api/team-formations/${sessionId}/close`).set("X-CSRF-Token", csrf);
@@ -351,7 +351,9 @@ describe("team formation routes", () => {
     const res = await agent.get(`/api/team-formations/${sessionId}/export`);
     expect(res.status).toBe(200);
     expect(res.headers["content-type"]).toContain("text/csv");
-    expect(res.text).toContain("Team Name");
+    expect(res.text).toContain("== TEAMS ==");
+    expect(res.text).toContain("== RESPONSES ==");
+    expect(res.text).toContain("== STATS ==");
   });
 
   // ── Validate-code ────────────────────────────────────────────────────────

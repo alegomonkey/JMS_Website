@@ -171,33 +171,44 @@ function shuffleInPlace<T>(arr: T[], rand: () => number): void {
 
 // ── Algorithm helpers ──────────────────────────────────────────────────────
 
+// Skill lists were historically stored under `categories`; the canonical key is
+// now `skills`. Read both so legacy snapshots and new surveys both work.
+function skillsOf(config: Record<string, unknown>): string[] {
+  return (config.skills ?? (config as { categories?: string[] }).categories ?? []) as string[];
+}
+
 function buildVectors(
   responses: ResponseRow[],
   questions: SnapshotQuestion[],
 ): Map<number, number[]> {
-  const dims: { questionId: number; key: string; type: string }[] = [];
+  const dims: { answerKey: string; key: string; type: string }[] = [];
 
   for (const q of questions) {
     if (q.block_type === "skill_level") {
+      // Legacy standalone proficiency block linked to a skill_selection above.
       const cfg = q.config as { parent_question_id: number };
       const parentQ = questions.find((pq) => pq.id === cfg.parent_question_id);
       if (parentQ) {
-        const cats = ((parentQ.config as { categories?: string[] }).categories ?? []);
-        for (const cat of cats) dims.push({ questionId: q.id, key: cat, type: "skill_level" });
+        for (const cat of skillsOf(parentQ.config))
+          dims.push({ answerKey: String(q.id), key: cat, type: "skill_level" });
       }
+    } else if (q.block_type === "skill_selection" && q.config.ask_proficiency) {
+      // Proficiency folded into the skill block: ratings live at `${id}:levels`.
+      for (const cat of skillsOf(q.config))
+        dims.push({ answerKey: `${q.id}:levels`, key: cat, type: "skill_level" });
     } else if (q.block_type === "custom_scale") {
-      dims.push({ questionId: q.id, key: "__value__", type: "custom_scale" });
+      dims.push({ answerKey: String(q.id), key: "__value__", type: "custom_scale" });
     } else if (q.block_type === "multiple_choice") {
       const opts = ((q.config as { options?: string[] }).options ?? []);
-      for (const opt of opts) dims.push({ questionId: q.id, key: opt, type: "multiple_choice" });
+      for (const opt of opts) dims.push({ answerKey: String(q.id), key: opt, type: "multiple_choice" });
     }
   }
 
   const vectors = new Map<number, number[]>();
   for (const r of responses) {
     const answers = JSON.parse(r.answers) as Record<string, unknown>;
-    const vec = dims.map(({ questionId, key, type }) => {
-      const a = answers[String(questionId)];
+    const vec = dims.map(({ answerKey, key, type }) => {
+      const a = answers[answerKey];
       if (a === undefined || a === null) return 0;
       if (type === "skill_level") {
         const scores = a as Record<string, number>;
@@ -978,20 +989,38 @@ export function getAggregate(
       .all(sessionId) as { answers: string }[]
   ).map((r) => JSON.parse(r.answers) as Record<string, unknown>);
 
+  // Computes per-skill proficiency means from level ratings stored at `levelKey`.
+  const proficiencyMeans = (skills: string[], levelKey: string): SkillLevelItem[] => {
+    const levelAnswers = allAnswers
+      .map((a) => a[levelKey])
+      .filter((a): a is Record<string, unknown> => a !== undefined && a !== null);
+    return skills.map((cat) => {
+      const scores = levelAnswers
+        .map((a) => a[cat])
+        .filter((v): v is number => typeof v === "number");
+      return {
+        category: cat,
+        mean: scores.length ? scores.reduce((a, b) => a + b, 0) / scores.length : 0,
+        responses: scores.length,
+      };
+    });
+  };
+
   return questions
     .filter((q) => q.block_type !== "avoid_respondent")
-    .map((q) => {
+    .flatMap((q) => {
       const qIdStr = String(q.id);
       const qAnswers = allAnswers
         .map((a) => a[qIdStr])
         .filter((a) => a !== undefined && a !== null);
 
       let data: unknown = null;
+      const extra: QuestionAggregate[] = [];
 
       switch (q.block_type) {
         case "skill_selection":
         case "negative_skill": {
-          const cats = ((q.config.categories ?? []) as string[]);
+          const cats = skillsOf(q.config);
           const counts = new Map<string, number>(cats.map((c) => [c, 0]));
           for (const a of qAnswers) {
             if (Array.isArray(a)) {
@@ -1001,22 +1030,23 @@ export function getAggregate(
             }
           }
           data = Array.from(counts.entries()).map(([category, count]) => ({ category, count }));
+          // Folded proficiency: emit a second skill_level-shaped entry.
+          if (q.block_type === "skill_selection" && q.config.ask_proficiency) {
+            const means = proficiencyMeans(cats, `${q.id}:levels`);
+            extra.push({
+              question_id: q.id,
+              block_type: "skill_level",
+              prompt: `${q.prompt} (proficiency)`,
+              response_count: Math.max(...means.map((m) => m.responses), 0),
+              data: means,
+            });
+          }
           break;
         }
         case "skill_level": {
           const cfg = q.config as { parent_question_id: number };
           const parentQ = questions.find((pq) => pq.id === cfg.parent_question_id);
-          const cats = ((parentQ?.config.categories ?? []) as string[]);
-          data = cats.map((cat) => {
-            const scores = (qAnswers as Record<string, unknown>[])
-              .map((a) => a[cat])
-              .filter((v): v is number => typeof v === "number");
-            return {
-              category: cat,
-              mean: scores.length ? scores.reduce((a, b) => a + b, 0) / scores.length : 0,
-              responses: scores.length,
-            };
-          });
+          data = proficiencyMeans(skillsOf(parentQ?.config ?? {}), qIdStr);
           break;
         }
         case "custom_scale": {
@@ -1053,8 +1083,17 @@ export function getAggregate(
         }
       }
 
-      return { question_id: q.id, block_type: q.block_type, prompt: q.prompt, response_count: qAnswers.length, data };
+      return [
+        { question_id: q.id, block_type: q.block_type, prompt: q.prompt, response_count: qAnswers.length, data },
+        ...extra,
+      ];
     });
+}
+
+interface SkillLevelItem {
+  category: string;
+  mean: number;
+  responses: number;
 }
 
 export function exportCsv(db: DB, sessionId: number, managerId: number): string {
@@ -1062,15 +1101,54 @@ export function exportCsv(db: DB, sessionId: number, managerId: number): string 
   if (!session) throw httpError(404, "session not found");
   assertOwner(session, managerId);
 
-  if (!session.survey_snapshot) return "Team Name,Submission Label\n";
-  const snapshot = JSON.parse(session.survey_snapshot) as Snapshot;
-  const questions = snapshot.questions;
+  const questions: SnapshotQuestion[] = session.survey_snapshot
+    ? (JSON.parse(session.survey_snapshot) as Snapshot).questions
+    : [];
 
+  const escapeCsv = (v: unknown): string => `"${String(v).replace(/"/g, '""')}"`;
+  const row = (cells: unknown[]): string => cells.map(escapeCsv).join(",");
+  const labelOf = (r: { display_name: string | null; slot_number: number | null; id: number }): string =>
+    r.display_name ?? (r.slot_number !== null ? `Submission ${r.slot_number}` : `Response ${r.id}`);
+
+  const lines: string[] = [];
+
+  // ── Section 1: Teams ──────────────────────────────────────────────────────
+  const memberRows = db
+    .prepare(
+      `SELECT t.name AS team_name, t.sort_order,
+              sr.id, sr.slot_number, tfa.display_name
+       FROM teams t
+       JOIN team_members tm ON tm.team_id = t.id
+       JOIN survey_responses sr ON sr.id = tm.response_id
+       LEFT JOIN team_formation_aliases tfa ON tfa.id = sr.alias_id
+       WHERE t.team_formation_id = ?
+       ORDER BY t.sort_order, sr.submitted_at`,
+    )
+    .all(sessionId) as {
+    team_name: string;
+    sort_order: number;
+    id: number;
+    slot_number: number | null;
+    display_name: string | null;
+  }[];
+
+  const teamMap = new Map<string, string[]>();
+  for (const m of memberRows) {
+    const list = teamMap.get(m.team_name) ?? [];
+    list.push(labelOf(m));
+    teamMap.set(m.team_name, list);
+  }
+  lines.push("== TEAMS ==");
+  lines.push(row(["Team", "Size", "Members"]));
+  for (const [team, members] of teamMap) {
+    lines.push(row([team, members.length, members.join("|")]));
+  }
+
+  // ── Section 2: Responses ──────────────────────────────────────────────────
   const responses = db
     .prepare(
-      `SELECT sr.id, sr.slot_number, sr.alias_id, sr.answers, sr.submitted_at,
-              tfa.display_name,
-              t.name as team_name
+      `SELECT sr.id, sr.slot_number, sr.alias_id, sr.answers, sr.submitted_at, sr.is_excluded,
+              tfa.display_name, t.name as team_name
        FROM survey_responses sr
        LEFT JOIN team_formation_aliases tfa ON tfa.id = sr.alias_id
        LEFT JOIN team_members tm ON tm.response_id = sr.id
@@ -1084,64 +1162,96 @@ export function exportCsv(db: DB, sessionId: number, managerId: number): string 
     alias_id: number | null;
     answers: string;
     submitted_at: number;
+    is_excluded: number;
     display_name: string | null;
     team_name: string | null;
   }[];
 
-  // Build header columns
-  const skillLevelQs = questions.filter((q) => q.block_type === "skill_level");
-  const customScaleQs = questions.filter((q) => q.block_type === "custom_scale");
-  const multipleChoiceQs = questions.filter((q) => q.block_type === "multiple_choice");
-  const writtenAnswerQs = questions.filter((q) => q.block_type === "written_answer");
-
-  const skillCols: { questionId: number; category: string }[] = [];
-  for (const q of skillLevelQs) {
-    const cfg = q.config as { parent_question_id: number };
-    const parentQ = questions.find((pq) => pq.id === cfg.parent_question_id);
-    const cats = ((parentQ?.config.categories ?? []) as string[]);
-    for (const cat of cats) skillCols.push({ questionId: q.id, category: cat });
+  // One column accessor per question, in survey order.
+  const columns: { header: string; get: (a: Record<string, unknown>) => string }[] = [];
+  for (const q of questions) {
+    const qid = String(q.id);
+    const head = q.prompt.slice(0, 64);
+    if (q.block_type === "skill_selection" || q.block_type === "negative_skill") {
+      columns.push({
+        header: `${head} (picks)`,
+        get: (a) => (Array.isArray(a[qid]) ? (a[qid] as string[]).join("|") : typeof a[qid] === "string" ? (a[qid] as string) : ""),
+      });
+      if (q.block_type === "skill_selection" && q.config.ask_proficiency) {
+        for (const skill of skillsOf(q.config)) {
+          columns.push({
+            header: `${skill} (level)`,
+            get: (a) => (a[`${q.id}:levels`] as Record<string, number> | undefined)?.[skill]?.toString() ?? "",
+          });
+        }
+      }
+    } else if (q.block_type === "skill_level") {
+      const cfg = q.config as { parent_question_id: number };
+      const parentQ = questions.find((pq) => pq.id === cfg.parent_question_id);
+      for (const skill of skillsOf(parentQ?.config ?? {})) {
+        columns.push({
+          header: `${skill} (level)`,
+          get: (a) => (a[qid] as Record<string, number> | undefined)?.[skill]?.toString() ?? "",
+        });
+      }
+    } else if (q.block_type === "custom_scale") {
+      columns.push({ header: head, get: (a) => (typeof a[qid] === "number" ? String(a[qid]) : "") });
+    } else if (q.block_type === "multiple_choice") {
+      columns.push({ header: head, get: (a) => (Array.isArray(a[qid]) ? (a[qid] as string[]).join("|") : "") });
+    } else if (q.block_type === "written_answer") {
+      columns.push({ header: head, get: (a) => (typeof a[qid] === "string" ? (a[qid] as string) : "") });
+    } else if (q.block_type === "avoid_respondent") {
+      columns.push({
+        header: `${head} (avoid)`,
+        get: (a) => (Array.isArray(a[qid]) ? (a[qid] as string[]).join("|") : typeof a[qid] === "string" ? (a[qid] as string) : ""),
+      });
+    }
   }
 
-  const headers = [
-    "Team Name",
-    "Submission Label",
-    ...skillCols.map((c) => `${c.category} (skill)`),
-    ...customScaleQs.map((q) => q.prompt.slice(0, 64)),
-    ...multipleChoiceQs.map((q) => q.prompt.slice(0, 64)),
-    ...writtenAnswerQs.map((q) => q.prompt.slice(0, 64)),
-  ];
-
-  const escapeCsv = (v: string): string => `"${v.replace(/"/g, '""')}"`;
-
-  const lines = [headers.map(escapeCsv).join(",")];
-
+  lines.push("");
+  lines.push("== RESPONSES ==");
+  lines.push(row(["Team", "Label", "Submitted", "Excluded", ...columns.map((c) => c.header)]));
   for (const r of responses) {
     const answers = JSON.parse(r.answers) as Record<string, unknown>;
-    const label =
-      r.display_name ?? (r.slot_number !== null ? `Submission ${r.slot_number}` : `Response ${r.id}`);
+    lines.push(
+      row([
+        r.team_name ?? "",
+        labelOf(r),
+        new Date(r.submitted_at * 1000).toISOString(),
+        r.is_excluded ? "yes" : "no",
+        ...columns.map((c) => c.get(answers)),
+      ]),
+    );
+  }
 
-    const row = [
-      r.team_name ?? "",
-      label,
-      ...skillCols.map(({ questionId, category }) => {
-        const a = answers[String(questionId)] as Record<string, number> | undefined;
-        return a?.[category]?.toString() ?? "";
-      }),
-      ...customScaleQs.map((q) => {
-        const a = answers[String(q.id)];
-        return typeof a === "number" ? String(a) : "";
-      }),
-      ...multipleChoiceQs.map((q) => {
-        const a = answers[String(q.id)];
-        return Array.isArray(a) ? (a as string[]).join("|") : "";
-      }),
-      ...writtenAnswerQs.map((q) => {
-        const a = answers[String(q.id)];
-        return typeof a === "string" ? a : "";
-      }),
-    ];
-
-    lines.push(row.map(escapeCsv).join(","));
+  // ── Section 3: Stats ──────────────────────────────────────────────────────
+  lines.push("");
+  lines.push("== STATS ==");
+  lines.push(row(["Question", "Type", "Metric", "Value"]));
+  for (const agg of getAggregate(db, sessionId, managerId)) {
+    const q = agg.prompt.slice(0, 80);
+    if (agg.block_type === "skill_selection" || agg.block_type === "negative_skill") {
+      for (const it of agg.data as { category: string; count: number }[]) {
+        lines.push(row([q, "Skill picks", it.category, it.count]));
+      }
+    } else if (agg.block_type === "skill_level") {
+      for (const it of agg.data as { category: string; mean: number; responses: number }[]) {
+        lines.push(row([q, "Mean level (1–10)", it.category, it.mean.toFixed(2)]));
+      }
+    } else if (agg.block_type === "multiple_choice") {
+      for (const it of agg.data as { option: string; count: number; percentage: number }[]) {
+        lines.push(row([q, "Choice", it.option, `${it.count} (${it.percentage}%)`]));
+      }
+    } else if (agg.block_type === "custom_scale") {
+      const d = agg.data as { mean: number; min: number | null; max: number | null; count: number };
+      lines.push(row([q, "Scale", "mean", d.mean.toFixed(2)]));
+      lines.push(row([q, "Scale", "min", d.min ?? ""]));
+      lines.push(row([q, "Scale", "max", d.max ?? ""]));
+      lines.push(row([q, "Scale", "responses", d.count]));
+    } else if (agg.block_type === "written_answer") {
+      const d = agg.data as { answers: string[] };
+      lines.push(row([q, "Written", "responses", d.answers.length]));
+    }
   }
 
   return lines.join("\n");

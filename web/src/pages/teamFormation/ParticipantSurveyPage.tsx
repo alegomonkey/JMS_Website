@@ -547,46 +547,95 @@ function BlockInput({
     );
     const selected = (answers[key] as string[] | undefined) ?? [];
 
+    // Proficiency is folded into the skill block: rate each selected skill 1–10,
+    // stored separately at `${qId}:levels` so the selection itself stays an array.
+    const askProficiency =
+      question.block_type === "skill_selection" && Boolean(question.config.ask_proficiency);
+    const levelsKey = `${key}:levels`;
+    const ratings = (answers[levelsKey] as Record<string, number> | undefined) ?? {};
+    const selectedSkills = allowMultiple
+      ? selected
+      : typeof answers[key] === "string"
+        ? [answers[key] as string]
+        : [];
+
+    const proficiencyBlock =
+      askProficiency && selectedSkills.length > 0 ? (
+        <div className={styles.blockWrap}>
+          <p className={styles.muted}>Rate your proficiency (1–10) for each selected skill:</p>
+          {selectedSkills.map((skill) => {
+            const val = ratings[skill] ?? 5;
+            return (
+              <div key={skill} className={styles.sliderRow}>
+                <label className={styles.sliderLabel} htmlFor={`${levelsKey}-${skill}`}>
+                  {skill}
+                </label>
+                <input
+                  id={`${levelsKey}-${skill}`}
+                  type="range"
+                  min={1}
+                  max={10}
+                  value={val}
+                  aria-valuemin={1}
+                  aria-valuemax={10}
+                  aria-valuenow={val}
+                  aria-valuetext={`${val} out of 10`}
+                  onChange={(e) => onChange(levelsKey, { ...ratings, [skill]: Number(e.target.value) })}
+                  className={styles.slider}
+                />
+                <span className={styles.sliderValue} aria-hidden>{val}</span>
+              </div>
+            );
+          })}
+        </div>
+      ) : null;
+
     if (allowMultiple) {
       return (
-        <fieldset className={styles.blockFieldset} aria-describedby={error ? errorId : undefined}>
-          <legend id={labelId} className={styles.blockLegend}>{question.prompt}</legend>
-          {error && <p id={errorId} role="alert" className={styles.blockError}>{error}</p>}
-          {skills.map((skill) => (
-            <label key={skill} className={styles.checkLabel}>
-              <input
-                type="checkbox"
-                checked={selected.includes(skill)}
-                onChange={(e) => {
-                  const next = e.target.checked
-                    ? [...selected, skill]
-                    : selected.filter((s) => s !== skill);
-                  onChange(key, next);
-                }}
-              />
-              {skill}
-            </label>
-          ))}
-        </fieldset>
+        <>
+          <fieldset className={styles.blockFieldset} aria-describedby={error ? errorId : undefined}>
+            <legend id={labelId} className={styles.blockLegend}>{question.prompt}</legend>
+            {error && <p id={errorId} role="alert" className={styles.blockError}>{error}</p>}
+            {skills.map((skill) => (
+              <label key={skill} className={styles.checkLabel}>
+                <input
+                  type="checkbox"
+                  checked={selected.includes(skill)}
+                  onChange={(e) => {
+                    const next = e.target.checked
+                      ? [...selected, skill]
+                      : selected.filter((s) => s !== skill);
+                    onChange(key, next);
+                  }}
+                />
+                {skill}
+              </label>
+            ))}
+          </fieldset>
+          {proficiencyBlock}
+        </>
       );
     } else {
       return (
-        <fieldset className={styles.blockFieldset} aria-describedby={error ? errorId : undefined}>
-          <legend className={styles.blockLegend}>{question.prompt}</legend>
-          {error && <p id={errorId} role="alert" className={styles.blockError}>{error}</p>}
-          {skills.map((skill) => (
-            <label key={skill} className={styles.checkLabel}>
-              <input
-                type="radio"
-                name={key}
-                value={skill}
-                checked={(answers[key] as string) === skill}
-                onChange={() => onChange(key, skill)}
-              />
-              {skill}
-            </label>
-          ))}
-        </fieldset>
+        <>
+          <fieldset className={styles.blockFieldset} aria-describedby={error ? errorId : undefined}>
+            <legend className={styles.blockLegend}>{question.prompt}</legend>
+            {error && <p id={errorId} role="alert" className={styles.blockError}>{error}</p>}
+            {skills.map((skill) => (
+              <label key={skill} className={styles.checkLabel}>
+                <input
+                  type="radio"
+                  name={key}
+                  value={skill}
+                  checked={(answers[key] as string) === skill}
+                  onChange={() => onChange(key, skill)}
+                />
+                {skill}
+              </label>
+            ))}
+          </fieldset>
+          {proficiencyBlock}
+        </>
       );
     }
   }

@@ -191,6 +191,20 @@
   flex: 1 1 12rem;
 }
 
+.dateTimeRow {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.dateTimeRow input[type="date"] {
+  flex: 1 1 10rem;
+}
+
+.dateTimeRow input[type="time"] {
+  flex: 0 1 8rem;
+}
+
 .charCount {
   font-size: 0.8125rem;
   color: var(--border);
@@ -386,6 +400,15 @@
 .attachedSurvey p {
   margin: 0;
   flex: 1;
+}
+
+.editingNote {
+  margin: 0 0 0.75rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 0.9375rem;
 }
 
 /* ── Step 3 — mode fieldset ─────────────────────────────────────────── */

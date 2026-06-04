@@ -58,7 +58,7 @@ const BLOCK_LABELS: Record<BlockType, string> = {
 };
 
 const DEFAULT_CONFIGS: Record<BlockType, Record<string, unknown>> = {
-  skill_selection: { skills: [], multi: false },
+  skill_selection: { skills: [], multi: false, ask_proficiency: false },
   skill_level: { parent_question_id: null, min: 1, max: 10 },
   written_answer: { max_chars: 500, placeholder: "" },
   negative_skill: { skills: [], multi: false },
@@ -113,6 +113,36 @@ function normalizeLegacyConfig(
   return config;
 }
 
+// Legacy surveys store proficiency as a separate `skill_level` block linked to
+// the skill_selection above it. Proficiency is now a toggle on the skill block,
+// so on load we fold each skill_level into its parent's `ask_proficiency` flag
+// and drop the standalone block. The dropped server rows are deleted on save.
+function foldLegacyProficiency(questions: BuilderQuestion[]): {
+  questions: BuilderQuestion[];
+  removedIds: number[];
+} {
+  const removedIds: number[] = [];
+  const result: BuilderQuestion[] = [];
+  for (const q of questions) {
+    if (q.block_type === "skill_level") {
+      for (let i = result.length - 1; i >= 0; i--) {
+        if (result[i]!.block_type === "skill_selection") {
+          result[i] = {
+            ...result[i]!,
+            config: { ...result[i]!.config, ask_proficiency: true },
+            dirty: true,
+          };
+          break;
+        }
+      }
+      if (q.id !== undefined) removedIds.push(q.id);
+      continue;
+    }
+    result.push(q);
+  }
+  return { questions: result, removedIds };
+}
+
 function validateSkillLevels(questions: BuilderQuestion[]): BuilderQuestion[] {
   return questions.map((q, idx) => {
     if (q.block_type !== "skill_level") return { ...q, unsaveableReason: undefined };
@@ -152,6 +182,8 @@ export const SurveyBuilder = forwardRef<SurveyBuilderHandle, Props>(
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const savedHideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const liveRegionRef = useRef<HTMLDivElement | null>(null);
+  // Server-side question ids dropped by foldLegacyProficiency, deleted on save.
+  const pendingDeletionsRef = useRef<number[]>([]);
 
   // ── Load ─────────────────────────────────────────────────────────────────
 
@@ -181,11 +213,15 @@ export const SurveyBuilder = forwardRef<SurveyBuilderHandle, Props>(
     fetchSurveyWithQuestions(surveyId)
       .then(({ survey, questions }) => {
         if (!cancelled) {
+          const { questions: folded, removedIds } = foldLegacyProficiency(
+            questions.map(toBuilderQuestion),
+          );
+          pendingDeletionsRef.current = removedIds;
           setState({
             phase: "ready",
             survey,
-            questions: validateSkillLevels(questions.map(toBuilderQuestion)),
-            saved: true,
+            questions: validateSkillLevels(folded),
+            saved: removedIds.length === 0,
             saveError: null,
           });
         }
@@ -252,6 +288,14 @@ export const SurveyBuilder = forwardRef<SurveyBuilderHandle, Props>(
           tags: surveyData.tags,
         });
         surveyData = survey;
+      }
+
+      // Delete server rows for skill_level blocks folded into ask_proficiency.
+      if (pendingDeletionsRef.current.length > 0 && surveyData.id !== 0) {
+        for (const id of pendingDeletionsRef.current) {
+          await deleteQuestion(surveyData.id, id);
+        }
+        pendingDeletionsRef.current = [];
       }
 
       const updatedQuestions: BuilderQuestion[] = [];
@@ -861,9 +905,10 @@ interface AddBlockMenuProps {
   onAdd: (type: BlockType) => void;
 }
 
+// `skill_level` is intentionally omitted: proficiency is now a toggle on the
+// skill_selection block (config.ask_proficiency), not a standalone block.
 const BLOCK_TYPES: BlockType[] = [
   "skill_selection",
-  "skill_level",
   "written_answer",
   "negative_skill",
   "avoid_respondent",
@@ -918,16 +963,25 @@ function BlockConfig({ question, allQuestions, onChange, onBlur }: BlockConfigPr
   );
 
   if (type === "skill_selection" || type === "negative_skill") {
+    const multi = Boolean(config.multi);
+    const note =
+      type === "negative_skill"
+        ? "Output: respondents flag skills to avoid."
+        : `Output: respondents pick ${multi ? "one or more" : "one"} of these skills${
+            config.ask_proficiency ? " and rate each 1–10" : ""
+          }.`;
     return (
       <div className={`${styles.configSection} ${type === "negative_skill" ? styles.negativeSkill : ""}`}>
         {promptField}
         <SkillListConfig
           config={config}
+          showProficiency={type === "skill_selection"}
           onChange={(cfg) => {
             onChange({ config: cfg });
             onBlur();
           }}
         />
+        <p className={styles.configNote}>{note}</p>
       </div>
     );
   }
@@ -984,6 +1038,9 @@ function BlockConfig({ question, allQuestions, onChange, onBlur }: BlockConfigPr
             onBlur={onBlur}
           />
         </div>
+        <p className={styles.configNote}>
+          Output: free-text answer up to {(config.max_chars as number) ?? 500} characters.
+        </p>
       </div>
     );
   }
@@ -1005,6 +1062,9 @@ function BlockConfig({ question, allQuestions, onChange, onBlur }: BlockConfigPr
             onBlur={onBlur}
           />
         </div>
+        <p className={styles.configNote}>
+          Output: respondents name people to keep off their team (a grouping constraint).
+        </p>
       </div>
     );
   }
@@ -1071,6 +1131,10 @@ function BlockConfig({ question, allQuestions, onChange, onBlur }: BlockConfigPr
             />
           </div>
         </div>
+        <p className={styles.configNote}>
+          Output: a single numeric rating from {(config.min as number) ?? 1}–
+          {(config.max as number) ?? 5}.
+        </p>
       </div>
     );
   }
@@ -1086,6 +1150,10 @@ function BlockConfig({ question, allQuestions, onChange, onBlur }: BlockConfigPr
             onBlur();
           }}
         />
+        <p className={styles.configNote}>
+          Output: respondents pick {config.allow_multiple ? "one or more" : "one"} of these
+          options.
+        </p>
       </div>
     );
   }
@@ -1098,12 +1166,14 @@ function BlockConfig({ question, allQuestions, onChange, onBlur }: BlockConfigPr
 interface SkillListConfigProps {
   config: Record<string, unknown>;
   onChange: (config: Record<string, unknown>) => void;
+  showProficiency?: boolean;
 }
 
-function SkillListConfig({ config, onChange }: SkillListConfigProps): JSX.Element {
+function SkillListConfig({ config, onChange, showProficiency }: SkillListConfigProps): JSX.Element {
   const [input, setInput] = useState("");
   const inputId = useId();
   const multiId = useId();
+  const proficiencyId = useId();
   const skills = (config.skills as string[]) ?? [];
 
   function addSkill(): void {
@@ -1200,8 +1270,19 @@ function SkillListConfig({ config, onChange }: SkillListConfigProps): JSX.Elemen
           checked={Boolean(config.multi)}
           onChange={(e) => onChange({ ...config, multi: e.target.checked })}
         />
-        Allow multi-select
+        Allow multiple selections
       </label>
+      {showProficiency && (
+        <label className={styles.checkLabel} htmlFor={proficiencyId}>
+          <input
+            id={proficiencyId}
+            type="checkbox"
+            checked={Boolean(config.ask_proficiency)}
+            onChange={(e) => onChange({ ...config, ask_proficiency: e.target.checked })}
+          />
+          Also ask proficiency (1–10) for each selected skill
+        </label>
+      )}
     </div>
   );
 }
@@ -1378,6 +1459,17 @@ function PreviewBlockAnswer({
           </label>
         ))}
         {skills.length === 0 && <span className={styles.previewNote}>(no skills defined)</span>}
+        {type === "skill_selection" && Boolean(config.ask_proficiency) && skills.length > 0 && (
+          <div className={styles.previewField}>
+            <span className={styles.previewNote}>Proficiency per selected skill:</span>
+            {skills.map((s) => (
+              <div key={`${s}-lvl`} className={styles.previewOption}>
+                <span>{s}</span>
+                <input type="range" min={1} max={10} disabled className={styles.previewRange} />
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     );
   }

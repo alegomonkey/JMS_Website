@@ -239,8 +239,11 @@ function Step1Config({ session, onSave }: Step1Props): JSX.Element {
   const [description, setDescription] = useState(session?.description ?? "");
   const [numTeams, setNumTeams] = useState(session?.num_teams ?? 2);
   const [targetSize, setTargetSize] = useState(session?.target_team_size ?? 4);
-  const [closesAt, setClosesAt] = useState(
-    session?.closes_at ? epochToDatetimeLocal(session.closes_at) : "",
+  const [closesAtDate, setClosesAtDate] = useState(
+    session?.closes_at ? epochToDate(session.closes_at) : "",
+  );
+  const [closesAtTime, setClosesAtTime] = useState(
+    session?.closes_at ? epochToTime(session.closes_at) : "",
   );
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
@@ -251,6 +254,7 @@ function Step1Config({ session, onSave }: Step1Props): JSX.Element {
   const numTeamsId = useId();
   const targetSizeId = useId();
   const closesAtId = useId();
+  const closesAtTimeId = useId();
   const titleCountId = useId();
   const descCountId = useId();
 
@@ -268,7 +272,7 @@ function Step1Config({ session, onSave }: Step1Props): JSX.Element {
     setBusy(true);
     setSaveError(null);
     try {
-      const closes = closesAt ? datetimeLocalToEpoch(closesAt) : null;
+      const closes = dateTimeToEpoch(closesAtDate, closesAtTime);
       const body = {
         title: title.trim(),
         description: description.trim() || null,
@@ -384,15 +388,27 @@ function Step1Config({ session, onSave }: Step1Props): JSX.Element {
 
       <div className={styles.field}>
         <label htmlFor={closesAtId}>Auto-close deadline</label>
-        <input
-          id={closesAtId}
-          type="datetime-local"
-          className={styles.input}
-          value={closesAt}
-          onChange={(e) => setClosesAt(e.target.value)}
-        />
+        <div className={styles.dateTimeRow}>
+          <input
+            id={closesAtId}
+            type="date"
+            className={styles.input}
+            aria-label="Deadline date"
+            value={closesAtDate}
+            onChange={(e) => setClosesAtDate(e.target.value)}
+          />
+          <input
+            id={closesAtTimeId}
+            type="time"
+            className={styles.input}
+            aria-label="Deadline time"
+            value={closesAtTime}
+            onChange={(e) => setClosesAtTime(e.target.value)}
+          />
+        </div>
         <span className={styles.helper}>
-          Closes when all slots fill or this deadline passes, whichever is first.
+          Closes when all slots fill or this deadline passes, whichever is first. A date with no
+          time closes at end of day.
         </span>
       </div>
 
@@ -428,10 +444,11 @@ interface Step2Props {
 
 function Step2Survey({ session, onSurveyAttached, onNext, onBack }: Step2Props): JSX.Element {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<"select" | "edit">("select");
+  const [activeTab, setActiveTab] = useState<"select" | "edit">(
+    session.survey_id ? "edit" : "select",
+  );
   const [attachedSurveyId, setAttachedSurveyId] = useState<number | null>(session.survey_id);
   const [attachedTitle, setAttachedTitle] = useState<string | null>(null);
-  const [showPicker, setShowPicker] = useState(!session.survey_id);
   const [busy, setBusy] = useState(false);
   const [nextError, setNextError] = useState<string | null>(null);
   const [attachError, setAttachError] = useState<string | null>(null);
@@ -449,7 +466,7 @@ function Step2Survey({ session, onSurveyAttached, onNext, onBack }: Step2Props):
       const { session: updated } = await updateSession(session.id, { survey_id: surveyId });
       setAttachedSurveyId(surveyId);
       if (title) setAttachedTitle(title);
-      setShowPicker(false);
+      // Open the editor directly rather than showing an "attached" interstitial.
       setActiveTab("edit");
       onSurveyAttached(updated);
     } catch (err) {
@@ -512,10 +529,7 @@ function Step2Survey({ session, onSurveyAttached, onNext, onBack }: Step2Props):
           aria-controls={selectPanelId}
           className={activeTab === "select" ? styles.tabActive : styles.tab}
           type="button"
-          onClick={() => {
-            setActiveTab("select");
-            setShowPicker(true);
-          }}
+          onClick={() => setActiveTab("select")}
         >
           Select Survey
         </button>
@@ -526,10 +540,7 @@ function Step2Survey({ session, onSurveyAttached, onNext, onBack }: Step2Props):
           aria-controls={editPanelId}
           className={activeTab === "edit" ? styles.tabActive : styles.tab}
           type="button"
-          onClick={() => {
-            setActiveTab("edit");
-            setShowPicker(true);
-          }}
+          onClick={() => setActiveTab("edit")}
         >
           {editLabel}
         </button>
@@ -541,62 +552,45 @@ function Step2Survey({ session, onSurveyAttached, onNext, onBack }: Step2Props):
         </p>
       )}
 
-      {attachedSurveyId && !showPicker && (
-        <div className={styles.attachedSurvey}>
-          <p>
-            <strong>Survey attached</strong>
-            {attachedTitle ? `: ${attachedTitle}` : ` (ID ${attachedSurveyId})`}
-          </p>
-          <button
-            type="button"
-            className={styles.secondaryBtn}
-            onClick={() => {
-              setShowPicker(true);
-              setActiveTab("select");
+      <div
+        role="tabpanel"
+        id={selectPanelId}
+        aria-labelledby={selectTabId}
+        hidden={activeTab !== "select"}
+      >
+        {activeTab === "select" && (
+          <SurveyLibrary
+            embeddedInWizard
+            onSelect={handleSurveySelected}
+            onCreateNew={() => {
+              setAttachedSurveyId(null);
+              setAttachedTitle(null);
+              setActiveTab("edit");
             }}
-          >
-            Change
-          </button>
-        </div>
-      )}
-
-      {showPicker && (
-        <>
-          <div
-            role="tabpanel"
-            id={selectPanelId}
-            aria-labelledby={selectTabId}
-            hidden={activeTab !== "select"}
-          >
-            {activeTab === "select" && (
-              <SurveyLibrary
-                embeddedInWizard
-                onSelect={handleSurveySelected}
-                onCreateNew={() => {
-                  setAttachedSurveyId(null);
-                  setAttachedTitle(null);
-                  setActiveTab("edit");
-                  setShowPicker(true);
-                }}
-              />
+          />
+        )}
+      </div>
+      <div
+        role="tabpanel"
+        id={editPanelId}
+        aria-labelledby={editTabId}
+        hidden={activeTab !== "edit"}
+      >
+        {activeTab === "edit" && (
+          <>
+            {attachedSurveyId && attachedTitle && (
+              <p className={styles.editingNote}>
+                Editing: <strong>{attachedTitle}</strong>
+              </p>
             )}
-          </div>
-          <div
-            role="tabpanel"
-            id={editPanelId}
-            aria-labelledby={editTabId}
-            hidden={activeTab !== "edit"}
-          >
-            {activeTab === "edit" && (
-              <SurveyBuilder
-                ref={builderRef}
-                surveyId={attachedSurveyId ?? undefined}
-                onSurveyCreated={handleSurveyCreated}
-              />
-            )}
-          </div>
-        </>
-      )}
+            <SurveyBuilder
+              ref={builderRef}
+              surveyId={attachedSurveyId ?? undefined}
+              onSurveyCreated={handleSurveyCreated}
+            />
+          </>
+        )}
+      </div>
 
       {nextError && (
         <p className={styles.saveError} role="alert">
@@ -1263,12 +1257,22 @@ function PostLaunchScreen({ session }: { session: TeamFormation }): JSX.Element 
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
-function epochToDatetimeLocal(epoch: number): string {
+function epochToDate(epoch: number): string {
   const d = new Date(epoch * 1000);
   const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
-function datetimeLocalToEpoch(value: string): number {
-  return Math.floor(new Date(value).getTime() / 1000);
+function epochToTime(epoch: number): string {
+  const d = new Date(epoch * 1000);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+// Combine a date (YYYY-MM-DD) and time (HH:MM) into an epoch. A date with no
+// time defaults to end-of-day; an empty date yields null (no deadline).
+function dateTimeToEpoch(date: string, time: string): number | null {
+  if (!date) return null;
+  const t = time || "23:59";
+  return Math.floor(new Date(`${date}T${t}`).getTime() / 1000);
 }

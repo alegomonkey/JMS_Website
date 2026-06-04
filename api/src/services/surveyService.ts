@@ -102,13 +102,30 @@ export function forkSurvey(db: DB, id: number, newOwnerId: number): SurveyWithQu
     `INSERT INTO survey_questions (survey_id, sort_order, block_type, prompt, config)
      VALUES (?, ?, ?, ?, ?)`,
   );
-  // Copy questions in sort order, normalizing legacy config schemas and
-  // remapping skill_level parent links from old question ids to the new ones.
+  const updateConfig = db.prepare("UPDATE survey_questions SET config = ? WHERE id = ?");
+  // Copy questions in sort order, normalizing legacy config schemas. Legacy
+  // standalone skill_level blocks are folded into the parent skill_selection's
+  // `ask_proficiency` flag and dropped (proficiency is now a skill-block toggle).
   const tx = db.transaction((questions: SurveyQuestion[]) => {
     const idMap = new Map<number, number>();
+    const newConfigById = new Map<number, Record<string, unknown>>();
     const ordered = [...questions].sort((a, b) => a.sort_order - b.sort_order);
     for (const q of ordered) {
       const config = JSON.parse(q.config) as Record<string, unknown>;
+
+      if (q.block_type === "skill_level") {
+        const oldParent = config.parent_question_id as number | null | undefined;
+        if (oldParent != null && idMap.has(oldParent)) {
+          const newParentId = idMap.get(oldParent)!;
+          const parentConfig = newConfigById.get(newParentId);
+          if (parentConfig) {
+            parentConfig.ask_proficiency = true;
+            updateConfig.run(JSON.stringify(parentConfig), newParentId);
+          }
+        }
+        continue; // drop the standalone block
+      }
+
       const normalized = normalizeForkedConfig(q.block_type, config, idMap);
       const info = insert.run(
         newSurveyId,
@@ -117,7 +134,9 @@ export function forkSurvey(db: DB, id: number, newOwnerId: number): SurveyWithQu
         q.prompt,
         JSON.stringify(normalized),
       );
-      idMap.set(q.id, Number(info.lastInsertRowid));
+      const newId = Number(info.lastInsertRowid);
+      idMap.set(q.id, newId);
+      newConfigById.set(newId, normalized);
     }
   });
   tx(source.questions);
