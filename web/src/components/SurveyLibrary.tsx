@@ -4,6 +4,7 @@ import styles from "./SurveyLibrary.module.css";
 
 interface Props {
   onSelect?: (survey: Survey) => void;
+  onCreateNew?: () => void;
   embeddedInWizard?: boolean;
 }
 
@@ -12,7 +13,7 @@ type LibState =
   | { status: "ready"; surveys: Survey[] }
   | { status: "error"; message: string };
 
-export function SurveyLibrary({ onSelect, embeddedInWizard }: Props): JSX.Element {
+export function SurveyLibrary({ onSelect, onCreateNew, embeddedInWizard }: Props): JSX.Element {
   const [state, setState] = useState<LibState>({ status: "loading" });
   const [query, setQuery] = useState("");
   const [activeTags, setActiveTags] = useState<string[]>([]);
@@ -94,6 +95,14 @@ export function SurveyLibrary({ onSelect, embeddedInWizard }: Props): JSX.Elemen
   return (
     <div className={styles.root}>
       {!embeddedInWizard && <h2 className={styles.heading}>Survey Library</h2>}
+
+      {embeddedInWizard && onCreateNew && (
+        <div className={styles.createNewRow}>
+          <button type="button" className={styles.createNewBtn} onClick={onCreateNew}>
+            + Create New Survey
+          </button>
+        </div>
+      )}
 
       <div className={styles.controls}>
         <label htmlFor="survey-search" className={styles.srOnly}>

@@ -176,6 +176,32 @@
   outline-offset: 2px;
 }
 
+.createNewRow {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.createNewBtn {
+  min-height: var(--target-min);
+  padding: 0.5rem 1rem;
+  background: var(--bright);
+  color: var(--bg);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.createNewBtn:hover {
+  opacity: 0.85;
+}
+
+.createNewBtn:focus-visible {
+  outline: 2px solid var(--fg);
+  outline-offset: 2px;
+}
+
 .message {
   color: var(--border);
   font-style: italic;

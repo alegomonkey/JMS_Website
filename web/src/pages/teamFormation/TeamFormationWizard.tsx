@@ -2,7 +2,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../../lib/auth.js";
 import { useDocumentTitle } from "../../lib/useDocumentTitle.js";
-import { SurveyBuilder } from "../../components/SurveyBuilder.js";
+import { SurveyBuilder, type SurveyBuilderHandle } from "../../components/SurveyBuilder.js";
 import { SurveyLibrary } from "../../components/SurveyLibrary.js";
 import { type Survey, fetchSurveyWithQuestions, forkSurvey } from "../../lib/surveyApi.js";
 import {
@@ -440,6 +440,7 @@ function Step2Survey({ session, onSurveyAttached, onNext, onBack }: Step2Props):
   const editTabId = useId();
   const selectPanelId = useId();
   const editPanelId = useId();
+  const builderRef = useRef<SurveyBuilderHandle>(null);
 
   async function attachSurvey(surveyId: number, title?: string): Promise<void> {
     setBusy(true);
@@ -478,12 +479,24 @@ function Step2Survey({ session, onSurveyAttached, onNext, onBack }: Step2Props):
     }
   }
 
-  function handleNext(): void {
+  async function handleNext(): Promise<void> {
     if (!attachedSurveyId) {
       setNextError("Please attach a survey before continuing.");
       return;
     }
     setNextError(null);
+    // Persist any unsaved survey edits before leaving the step
+    if (activeTab === "edit" && builderRef.current) {
+      setBusy(true);
+      try {
+        await builderRef.current.save();
+      } catch (err) {
+        setNextError(err instanceof Error ? err.message : "Failed to save survey");
+        setBusy(false);
+        return;
+      }
+      setBusy(false);
+    }
     onNext();
   }
 
@@ -504,7 +517,7 @@ function Step2Survey({ session, onSurveyAttached, onNext, onBack }: Step2Props):
             setShowPicker(true);
           }}
         >
-          Select Existing Survey
+          Select Survey
         </button>
         <button
           role="tab"
@@ -556,7 +569,16 @@ function Step2Survey({ session, onSurveyAttached, onNext, onBack }: Step2Props):
             hidden={activeTab !== "select"}
           >
             {activeTab === "select" && (
-              <SurveyLibrary embeddedInWizard onSelect={handleSurveySelected} />
+              <SurveyLibrary
+                embeddedInWizard
+                onSelect={handleSurveySelected}
+                onCreateNew={() => {
+                  setAttachedSurveyId(null);
+                  setAttachedTitle(null);
+                  setActiveTab("edit");
+                  setShowPicker(true);
+                }}
+              />
             )}
           </div>
           <div
@@ -567,6 +589,7 @@ function Step2Survey({ session, onSurveyAttached, onNext, onBack }: Step2Props):
           >
             {activeTab === "edit" && (
               <SurveyBuilder
+                ref={builderRef}
                 surveyId={attachedSurveyId ?? undefined}
                 onSurveyCreated={handleSurveyCreated}
               />
@@ -588,10 +611,10 @@ function Step2Survey({ session, onSurveyAttached, onNext, onBack }: Step2Props):
         <button
           type="button"
           className={styles.primaryBtn}
-          onClick={handleNext}
+          onClick={() => void handleNext()}
           disabled={busy}
         >
-          Next →
+          {busy ? "Saving…" : "Next →"}
         </button>
       </div>
     </div>

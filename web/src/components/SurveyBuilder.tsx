@@ -1,4 +1,12 @@
-import { useCallback, useEffect, useId, useRef, useState } from "react";
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useId,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from "react";
 import {
   type BlockType,
   type Survey,
@@ -66,6 +74,10 @@ interface Props {
   onSurveyCreated?: (id: number) => void;
 }
 
+export interface SurveyBuilderHandle {
+  save: () => Promise<void>;
+}
+
 // ── Helpers ────────────────────────────────────────────────────────────────
 
 function localId(): string {
@@ -108,7 +120,8 @@ function validateSkillLevels(questions: BuilderQuestion[]): BuilderQuestion[] {
 
 // ── Main component ──────────────────────────────────────────────────────────
 
-export function SurveyBuilder({ surveyId, onSurveyCreated }: Props): JSX.Element {
+export const SurveyBuilder = forwardRef<SurveyBuilderHandle, Props>(
+  function SurveyBuilder({ surveyId, onSurveyCreated }, ref): JSX.Element {
   const [state, setState] = useState<BuilderState>({ phase: "loading" });
   const [previewMode, setPreviewMode] = useState<PreviewMode>(null);
   const [deletingLocalId, setDeletingLocalId] = useState<string | null>(null);
@@ -179,6 +192,13 @@ export function SurveyBuilder({ surveyId, onSurveyCreated }: Props): JSX.Element
       void performSave();
     }, 600);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useImperativeHandle(ref, () => ({
+    save: () => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+      return performSave();
+    },
+  })); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function performSave(): Promise<void> {
     setState((prev) => {
@@ -514,13 +534,26 @@ export function SurveyBuilder({ surveyId, onSurveyCreated }: Props): JSX.Element
           }
           onBlur={triggerSave}
         />
-        <div className={styles.saveStatus} aria-live="polite">
-          {saved && <span className={styles.savedMsg}>Saved</span>}
-          {saveError && (
-            <span className={styles.saveErr} role="alert">
-              {saveError}
-            </span>
-          )}
+        <div className={styles.saveStatus}>
+          <button
+            type="button"
+            className={styles.saveBtn}
+            onClick={() => {
+              if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+              void performSave();
+            }}
+            disabled={!questions.some((q) => q.dirty)}
+          >
+            Save
+          </button>
+          <span aria-live="polite">
+            {saved && <span className={styles.savedMsg}>Saved</span>}
+            {saveError && (
+              <span className={styles.saveErr} role="alert">
+                {saveError}
+              </span>
+            )}
+          </span>
         </div>
       </div>
 
@@ -679,7 +712,8 @@ export function SurveyBuilder({ surveyId, onSurveyCreated }: Props): JSX.Element
       <AddBlockMenu onAdd={addBlock} />
     </div>
   );
-}
+  },
+);
 
 // ── MetaFields ─────────────────────────────────────────────────────────────
 
@@ -1109,7 +1143,7 @@ function SkillListConfig({ config, onChange }: SkillListConfigProps): JSX.Elemen
                 tabIndex={-1}
                 className={styles.previewCheckbox}
               />
-              <span>{skill}</span>
+              <span className={styles.skillName}>{skill}</span>
               <div className={styles.skillActions}>
                 <button
                   type="button"
@@ -1222,7 +1256,7 @@ function MultipleChoiceConfig({ config, onChange }: MultipleChoiceConfigProps): 
                 tabIndex={-1}
                 className={styles.previewCheckbox}
               />
-              <span>{opt}</span>
+              <span className={styles.skillName}>{opt}</span>
               <div className={styles.skillActions}>
                 <button
                   type="button"

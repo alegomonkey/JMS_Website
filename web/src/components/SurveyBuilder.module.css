@@ -191,7 +191,37 @@
 }
 
 .saveStatus {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
   min-height: 1.5rem;
+}
+
+.saveBtn {
+  min-height: var(--target-min);
+  padding: 0.375rem 1rem;
+  background: var(--bright);
+  color: var(--bg);
+  border: 1px solid var(--bright);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.saveBtn:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+.saveBtn:focus-visible {
+  outline: 2px solid var(--bright);
+  outline-offset: 2px;
+}
+
+.saveBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .savedMsg {
@@ -541,18 +571,27 @@
 .skillItem {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   padding: 0.25rem 0.5rem;
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 4px;
   font-size: 0.9375rem;
   gap: 0.5rem;
+  overflow: hidden;
+}
+
+.skillName {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .skillActions {
   display: flex;
   gap: 0.25rem;
+  flex-shrink: 0;
 }
 
 .previewCheckbox {
