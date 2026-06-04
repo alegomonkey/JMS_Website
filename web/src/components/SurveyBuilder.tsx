@@ -91,9 +91,26 @@ function toBuilderQuestion(q: SurveyQuestion): BuilderQuestion {
     sort_order: q.sort_order,
     block_type: q.block_type as BlockType,
     prompt: q.prompt,
-    config: q.config,
+    config: normalizeLegacyConfig(q.block_type as BlockType, q.config),
     dirty: false,
   };
+}
+
+// Maps legacy seed config (categories/multi_select) to the canonical
+// skills/multi schema so forked seed surveys edit correctly.
+function normalizeLegacyConfig(
+  blockType: BlockType,
+  config: Record<string, unknown>,
+): Record<string, unknown> {
+  if (blockType === "skill_selection" || blockType === "negative_skill") {
+    const { categories, multi_select, ...rest } = config;
+    return {
+      ...rest,
+      skills: config.skills ?? categories ?? [],
+      multi: config.multi ?? multi_select ?? false,
+    };
+  }
+  return config;
 }
 
 function validateSkillLevels(questions: BuilderQuestion[]): BuilderQuestion[] {

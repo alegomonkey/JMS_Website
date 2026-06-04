@@ -102,14 +102,53 @@ export function forkSurvey(db: DB, id: number, newOwnerId: number): SurveyWithQu
     `INSERT INTO survey_questions (survey_id, sort_order, block_type, prompt, config)
      VALUES (?, ?, ?, ?, ?)`,
   );
+  // Copy questions in sort order, normalizing legacy config schemas and
+  // remapping skill_level parent links from old question ids to the new ones.
   const tx = db.transaction((questions: SurveyQuestion[]) => {
-    for (const q of questions) {
-      insert.run(newSurveyId, q.sort_order, q.block_type, q.prompt, q.config);
+    const idMap = new Map<number, number>();
+    const ordered = [...questions].sort((a, b) => a.sort_order - b.sort_order);
+    for (const q of ordered) {
+      const config = JSON.parse(q.config) as Record<string, unknown>;
+      const normalized = normalizeForkedConfig(q.block_type, config, idMap);
+      const info = insert.run(
+        newSurveyId,
+        q.sort_order,
+        q.block_type,
+        q.prompt,
+        JSON.stringify(normalized),
+      );
+      idMap.set(q.id, Number(info.lastInsertRowid));
     }
   });
   tx(source.questions);
 
   return getSurveyWithQuestions(db, newSurveyId) as SurveyWithQuestions;
+}
+
+// Normalizes a copied question's config to the canonical builder schema and
+// remaps skill_level parent references via the old→new question id map.
+function normalizeForkedConfig(
+  blockType: string,
+  config: Record<string, unknown>,
+  idMap: Map<number, number>,
+): Record<string, unknown> {
+  if (blockType === "skill_selection" || blockType === "negative_skill") {
+    const { categories, multi_select, ...rest } = config;
+    return {
+      ...rest,
+      skills: config.skills ?? categories ?? [],
+      multi: config.multi ?? multi_select ?? false,
+    };
+  }
+  if (blockType === "skill_level") {
+    const oldParent = config.parent_question_id as number | null | undefined;
+    return {
+      ...config,
+      parent_question_id:
+        oldParent != null && idMap.has(oldParent) ? idMap.get(oldParent)! : null,
+    };
+  }
+  return config;
 }
 
 export function getSurvey(db: DB, id: number): Survey | null {

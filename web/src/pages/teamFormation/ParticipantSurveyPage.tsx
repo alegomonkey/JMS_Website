@@ -540,8 +540,11 @@ function BlockInput({
   if (question.block_type === "avoid_respondent" && slotMode === "numbered") return null;
 
   if (question.block_type === "skill_selection" || question.block_type === "negative_skill") {
-    const skills = (question.config.skills as string[]) ?? [];
-    const allowMultiple = question.config.allow_multiple !== false;
+    const skills =
+      (question.config.skills as string[]) ?? (question.config.categories as string[]) ?? [];
+    const allowMultiple = Boolean(
+      question.config.multi ?? question.config.multi_select ?? question.config.allow_multiple,
+    );
     const selected = (answers[key] as string[] | undefined) ?? [];
 
     if (allowMultiple) {
