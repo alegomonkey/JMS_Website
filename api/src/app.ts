@@ -9,6 +9,8 @@ import { cribbageRouter } from "./routes/cribbage.js";
 import { usersRouter } from "./routes/users.js";
 import { profileCommentsRouter } from "./routes/profileComments.js";
 import { oauthRouter, enabledProviders } from "./routes/oauth.js";
+import { teamFormationsRouter } from "./routes/teamFormations.js";
+import { surveysRouter } from "./routes/surveys.js";
 import { verifyCsrf } from "./middleware/csrf.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import type { ProviderCredentials } from "./services/oauthProviders.js";
@@ -82,6 +84,8 @@ export function createApp(db: DB, cfg: AppConfig): Express {
   app.use("/api", verifyCsrf, cribbageRouter(db));
   app.use("/api", verifyCsrf, usersRouter(db));
   app.use("/api", verifyCsrf, profileCommentsRouter(db));
+  app.use("/api", verifyCsrf, teamFormationsRouter(db));
+  app.use("/api", verifyCsrf, surveysRouter(db));
 
   app.use(errorHandler);
   return app;

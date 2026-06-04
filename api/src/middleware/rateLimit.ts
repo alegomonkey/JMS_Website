@@ -23,3 +23,12 @@ export const writeLimiter = rateLimit({
   message: { error: "rate limit exceeded" },
   skip: skipInTest,
 });
+
+export const validateCodeLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  limit: 10,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  message: { error: "too many validation attempts, try again later" },
+  skip: skipInTest,
+});

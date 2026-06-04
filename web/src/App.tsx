@@ -15,6 +15,12 @@ import { CribbageRecords } from "./pages/cribbage/CribbageRecords";
 import { CribbageGameDetail } from "./pages/cribbage/CribbageGameDetail";
 import { CribbageHelp } from "./pages/cribbage/CribbageHelp";
 import { CribbageImprovementChart } from "./pages/cribbage/CribbageImprovementChart";
+import { SurveysPage } from "./pages/surveys/SurveysPage";
+import { SurveyBuilderPage } from "./pages/surveys/SurveyBuilderPage";
+import { TeamFormationPage } from "./pages/teamFormation/TeamFormationPage";
+import { TeamFormationWizard } from "./pages/teamFormation/TeamFormationWizard";
+import { ParticipantSurveyPage } from "./pages/teamFormation/ParticipantSurveyPage";
+import { TeamFormationResultsPage } from "./pages/teamFormation/TeamFormationResultsPage";
 import { useDocumentTitle } from "./lib/useDocumentTitle";
 
 export function App(): JSX.Element {
@@ -41,6 +47,14 @@ export function App(): JSX.Element {
             <Route path="/cribbage/records" element={<CribbageRecords />} />
             <Route path="/cribbage/games/:id" element={<CribbageGameDetail />} />
             <Route path="/cribbage/help" element={<CribbageHelp />} />
+            <Route path="/surveys" element={<SurveysPage />} />
+            <Route path="/surveys/new" element={<SurveyBuilderPage />} />
+            <Route path="/surveys/:id/edit" element={<SurveyBuilderPage />} />
+            <Route path="/team-formation" element={<TeamFormationPage />} />
+            <Route path="/team-formation/join" element={<ParticipantSurveyPage />} />
+            <Route path="/team-formation/new" element={<TeamFormationWizard />} />
+            <Route path="/team-formation/:id/edit" element={<TeamFormationWizard />} />
+            <Route path="/team-formation/:id/results" element={<TeamFormationResultsPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </main>

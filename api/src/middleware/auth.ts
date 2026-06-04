@@ -46,5 +46,6 @@ declare module "express-session" {
     oauthState?: string;
     oauthIntent?: OauthIntent;
     pendingOauth?: PendingOauth;
+    slotToken?: string;
   }
 }

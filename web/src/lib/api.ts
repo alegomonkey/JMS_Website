@@ -23,7 +23,7 @@ function makeError(status: number, message: string): ApiError {
   return err;
 }
 
-type Method = "GET" | "POST" | "DELETE" | "PATCH";
+type Method = "GET" | "POST" | "DELETE" | "PATCH" | "PUT";
 
 interface RequestOptions {
   method?: Method;

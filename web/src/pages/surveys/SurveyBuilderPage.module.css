@@ -1,0 +1,15 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 54rem;
+}
+
+.heading {
+  margin: 0;
+}
+
+.message {
+  color: var(--border);
+  font-style: italic;
+}

@@ -1,0 +1,45 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.heading {
+  margin: 0;
+}
+
+.newBtn {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--target-min);
+  padding: 0.375rem 1rem;
+  background: var(--bright);
+  color: var(--bg);
+  border-radius: 4px;
+  text-decoration: none;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.newBtn:hover {
+  opacity: 0.85;
+}
+
+.newBtn:focus-visible {
+  outline: 2px solid var(--fg);
+  outline-offset: 2px;
+}
+
+.message {
+  color: var(--border);
+  font-style: italic;
+}
