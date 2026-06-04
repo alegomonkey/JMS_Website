@@ -21,6 +21,7 @@ import { TeamFormationPage } from "./pages/teamFormation/TeamFormationPage";
 import { TeamFormationWizard } from "./pages/teamFormation/TeamFormationWizard";
 import { ParticipantSurveyPage } from "./pages/teamFormation/ParticipantSurveyPage";
 import { TeamFormationResultsPage } from "./pages/teamFormation/TeamFormationResultsPage";
+import { AdminSurveysPage } from "./pages/AdminSurveysPage";
 import { useDocumentTitle } from "./lib/useDocumentTitle";
 
 export function App(): JSX.Element {
@@ -55,6 +56,7 @@ export function App(): JSX.Element {
             <Route path="/team-formation/new" element={<TeamFormationWizard />} />
             <Route path="/team-formation/:id/edit" element={<TeamFormationWizard />} />
             <Route path="/team-formation/:id/results" element={<TeamFormationResultsPage />} />
+            <Route path="/admin/surveys" element={<AdminSurveysPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </main>

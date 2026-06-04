@@ -3,7 +3,7 @@ import { type Survey, fetchSurveys } from "../lib/surveyApi.js";
 import styles from "./SurveyLibrary.module.css";
 
 interface Props {
-  onSelect?: (surveyId: number) => void;
+  onSelect?: (survey: Survey) => void;
   embeddedInWizard?: boolean;
 }
 
@@ -166,7 +166,7 @@ export function SurveyLibrary({ onSelect, embeddedInWizard }: Props): JSX.Elemen
 
 interface CardProps {
   survey: Survey;
-  onSelect?: (id: number) => void;
+  onSelect?: (survey: Survey) => void;
   ref: (el: HTMLElement | null) => void;
 }
 
@@ -201,7 +201,7 @@ function SurveyCard({ survey, onSelect, ref }: CardProps): JSX.Element {
         <button
           type="button"
           className={styles.selectBtn}
-          onClick={() => onSelect(survey.id)}
+          onClick={() => onSelect(survey)}
         >
           Use this survey
         </button>

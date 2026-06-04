@@ -4,7 +4,7 @@ import { useAuth } from "../../lib/auth.js";
 import { useDocumentTitle } from "../../lib/useDocumentTitle.js";
 import { SurveyBuilder } from "../../components/SurveyBuilder.js";
 import { SurveyLibrary } from "../../components/SurveyLibrary.js";
-import { fetchSurveyWithQuestions } from "../../lib/surveyApi.js";
+import { type Survey, fetchSurveyWithQuestions, forkSurvey } from "../../lib/surveyApi.js";
 import {
   type Alias,
   type TeamFormation,
@@ -113,7 +113,17 @@ export function TeamFormationWizard(): JSX.Element {
     <div className={styles.root}>
       <h1 className={styles.heading}>{sessionId ? "Edit Session" : "New Session"}</h1>
 
-      <StepStepper currentStep={step} />
+      <StepStepper
+        currentStep={step}
+        canGoTo={(s) => {
+          if (s === 1) return true;
+          if (s === 2) return session !== null;
+          if (s === 3) return session?.survey_id != null;
+          if (s === 4) return session?.survey_id != null;
+          return false;
+        }}
+        onStepClick={setStep}
+      />
 
       <div className={styles.stepContent}>
         {step === 1 && (
@@ -172,22 +182,43 @@ function determineStep(session: TeamFormation): Step {
 
 // ── StepStepper ────────────────────────────────────────────────────────────
 
-function StepStepper({ currentStep }: { currentStep: Step }): JSX.Element {
+function StepStepper({
+  currentStep,
+  canGoTo,
+  onStepClick,
+}: {
+  currentStep: Step;
+  canGoTo: (s: Step) => boolean;
+  onStepClick: (s: Step) => void;
+}): JSX.Element {
   return (
     <>
       <ol className={styles.stepper} aria-label="Wizard steps">
-        {([1, 2, 3, 4] as Step[]).map((s) => (
-          <li
-            key={s}
-            className={`${styles.stepperItem} ${currentStep === s ? styles.stepperActive : currentStep > s ? styles.stepperDone : ""}`}
-            aria-current={currentStep === s ? "step" : undefined}
-          >
-            <span className={styles.stepNum} aria-hidden="true">
-              {s}
-            </span>
-            <span className={styles.stepLabel}>{STEPS[s]}</span>
-          </li>
-        ))}
+        {([1, 2, 3, 4] as Step[]).map((s) => {
+          const reachable = canGoTo(s);
+          const active = currentStep === s;
+          const done = currentStep > s;
+          return (
+            <li
+              key={s}
+              className={`${styles.stepperItem} ${active ? styles.stepperActive : done ? styles.stepperDone : ""}`}
+            >
+              <button
+                type="button"
+                className={styles.stepperBtn}
+                onClick={() => reachable && onStepClick(s)}
+                aria-current={active ? "step" : undefined}
+                aria-disabled={!reachable}
+                tabIndex={reachable ? 0 : -1}
+              >
+                <span className={styles.stepNum} aria-hidden="true">
+                  {s}
+                </span>
+                <span className={styles.stepLabel}>{STEPS[s]}</span>
+              </button>
+            </li>
+          );
+        })}
       </ol>
       <p className={styles.stepperMobile} aria-live="polite">
         Step {currentStep} of 4: {STEPS[currentStep]}
@@ -396,9 +427,8 @@ interface Step2Props {
 }
 
 function Step2Survey({ session, onSurveyAttached, onNext, onBack }: Step2Props): JSX.Element {
-  const [activeTab, setActiveTab] = useState<"create" | "select">(
-    session.survey_id ? "select" : "create",
-  );
+  const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState<"select" | "edit">("select");
   const [attachedSurveyId, setAttachedSurveyId] = useState<number | null>(session.survey_id);
   const [attachedTitle, setAttachedTitle] = useState<string | null>(null);
   const [showPicker, setShowPicker] = useState(!session.survey_id);
@@ -406,18 +436,20 @@ function Step2Survey({ session, onSurveyAttached, onNext, onBack }: Step2Props):
   const [nextError, setNextError] = useState<string | null>(null);
   const [attachError, setAttachError] = useState<string | null>(null);
 
-  const createTabId = useId();
   const selectTabId = useId();
-  const createPanelId = useId();
+  const editTabId = useId();
   const selectPanelId = useId();
+  const editPanelId = useId();
 
-  async function attachSurvey(surveyId: number): Promise<void> {
+  async function attachSurvey(surveyId: number, title?: string): Promise<void> {
     setBusy(true);
     setAttachError(null);
     try {
       const { session: updated } = await updateSession(session.id, { survey_id: surveyId });
       setAttachedSurveyId(surveyId);
+      if (title) setAttachedTitle(title);
       setShowPicker(false);
+      setActiveTab("edit");
       onSurveyAttached(updated);
     } catch (err) {
       setAttachError(err instanceof Error ? err.message : "Failed to attach survey");
@@ -430,12 +462,20 @@ function Step2Survey({ session, onSurveyAttached, onNext, onBack }: Step2Props):
     void attachSurvey(newId);
   }
 
-  function handleSurveySelected(id: number): void {
-    void attachSurvey(id);
-    // Fetch title for display
-    fetchSurveyWithQuestions(id)
-      .then(({ survey }) => setAttachedTitle(survey.title))
-      .catch(() => null);
+  function handleSurveySelected(survey: Survey): void {
+    // Fork public surveys not owned by current user so they can be edited
+    if (user && survey.owner_id !== user.id) {
+      setBusy(true);
+      setAttachError(null);
+      forkSurvey(survey.id)
+        .then(({ survey: forked }) => attachSurvey(forked.id, forked.title))
+        .catch((err: unknown) => {
+          setAttachError(err instanceof Error ? err.message : "Failed to copy survey");
+          setBusy(false);
+        });
+    } else {
+      void attachSurvey(survey.id, survey.title);
+    }
   }
 
   function handleNext(): void {
@@ -447,23 +487,11 @@ function Step2Survey({ session, onSurveyAttached, onNext, onBack }: Step2Props):
     onNext();
   }
 
+  const editLabel = attachedSurveyId ? "Edit Survey" : "Create New Survey";
+
   return (
     <div className={styles.stepForm}>
       <div className={styles.tabs} role="tablist" aria-label="Survey setup method">
-        <button
-          role="tab"
-          id={createTabId}
-          aria-selected={activeTab === "create"}
-          aria-controls={createPanelId}
-          className={activeTab === "create" ? styles.tabActive : styles.tab}
-          type="button"
-          onClick={() => {
-            setActiveTab("create");
-            setShowPicker(true);
-          }}
-        >
-          Create New Survey
-        </button>
         <button
           role="tab"
           id={selectTabId}
@@ -473,10 +501,24 @@ function Step2Survey({ session, onSurveyAttached, onNext, onBack }: Step2Props):
           type="button"
           onClick={() => {
             setActiveTab("select");
-            setShowPicker(!attachedSurveyId);
+            setShowPicker(true);
           }}
         >
           Select Existing Survey
+        </button>
+        <button
+          role="tab"
+          id={editTabId}
+          aria-selected={activeTab === "edit"}
+          aria-controls={editPanelId}
+          className={activeTab === "edit" ? styles.tabActive : styles.tab}
+          type="button"
+          onClick={() => {
+            setActiveTab("edit");
+            setShowPicker(true);
+          }}
+        >
+          {editLabel}
         </button>
       </div>
 
@@ -495,7 +537,10 @@ function Step2Survey({ session, onSurveyAttached, onNext, onBack }: Step2Props):
           <button
             type="button"
             className={styles.secondaryBtn}
-            onClick={() => setShowPicker(true)}
+            onClick={() => {
+              setShowPicker(true);
+              setActiveTab("select");
+            }}
           >
             Change
           </button>
@@ -506,25 +551,25 @@ function Step2Survey({ session, onSurveyAttached, onNext, onBack }: Step2Props):
         <>
           <div
             role="tabpanel"
-            id={createPanelId}
-            aria-labelledby={createTabId}
-            hidden={activeTab !== "create"}
-          >
-            {activeTab === "create" && (
-              <SurveyBuilder
-                surveyId={attachedSurveyId ?? undefined}
-                onSurveyCreated={handleSurveyCreated}
-              />
-            )}
-          </div>
-          <div
-            role="tabpanel"
             id={selectPanelId}
             aria-labelledby={selectTabId}
             hidden={activeTab !== "select"}
           >
             {activeTab === "select" && (
               <SurveyLibrary embeddedInWizard onSelect={handleSurveySelected} />
+            )}
+          </div>
+          <div
+            role="tabpanel"
+            id={editPanelId}
+            aria-labelledby={editTabId}
+            hidden={activeTab !== "edit"}
+          >
+            {activeTab === "edit" && (
+              <SurveyBuilder
+                surveyId={attachedSurveyId ?? undefined}
+                onSurveyCreated={handleSurveyCreated}
+              />
             )}
           </div>
         </>

@@ -89,3 +89,15 @@ export function reorderQuestions(surveyId: number, ids: number[]): Promise<void>
     body: { ids },
   });
 }
+
+export function forkSurvey(id: number): Promise<{ survey: Survey; questions: SurveyQuestion[] }> {
+  return apiRequest(`/api/surveys/${id}/fork`, { method: "POST" });
+}
+
+export function fetchPendingSurveys(): Promise<{ surveys: Survey[] }> {
+  return apiRequest("/api/admin/surveys");
+}
+
+export function approveSurvey(id: number): Promise<{ survey: Survey }> {
+  return apiRequest(`/api/admin/surveys/${id}/approve`, { method: "POST" });
+}

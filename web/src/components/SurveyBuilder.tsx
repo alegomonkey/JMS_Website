@@ -247,10 +247,29 @@ export function SurveyBuilder({ surveyId, onSurveyCreated }: Props): JSX.Element
         await reorderQuestions(surveyData.id, savedIds);
       }
 
+      // Re-validate skill_level parent links now that all blocks have DB IDs
+      const revalidated = validateSkillLevels(updatedQuestions);
+      const finalQuestions: BuilderQuestion[] = [];
+      for (let i = 0; i < revalidated.length; i++) {
+        const orig = updatedQuestions[i]!;
+        const fixed = revalidated[i]!;
+        if (
+          fixed.block_type === "skill_level" &&
+          fixed.id &&
+          fixed.config.parent_question_id !== orig.config.parent_question_id &&
+          fixed.config.parent_question_id !== null
+        ) {
+          await updateQuestion(surveyData.id, fixed.id, { config: fixed.config });
+          finalQuestions.push({ ...fixed, dirty: false });
+        } else {
+          finalQuestions.push(fixed);
+        }
+      }
+
       setState({
         phase: "ready",
         survey: surveyData,
-        questions: updatedQuestions,
+        questions: finalQuestions,
         saved: true,
         saveError: null,
       });
@@ -726,8 +745,18 @@ function MetaFields({ survey, onChange, onBlur }: MetaFieldsProps): JSX.Element 
                 onBlur();
               }}
             />
-            Public (visible in library to other users)
+            Submit for public library
           </label>
+          {Boolean(survey.is_public) && !Boolean(survey.is_approved) && (
+            <p className={styles.configNote} style={{ marginTop: "0.35rem" }}>
+              Awaiting admin approval before appearing in library.
+            </p>
+          )}
+          {Boolean(survey.is_public) && Boolean(survey.is_approved) && (
+            <p className={styles.configNote} style={{ marginTop: "0.35rem" }}>
+              Approved — visible in library.
+            </p>
+          )}
         </fieldset>
       </div>
 
@@ -1073,6 +1102,13 @@ function SkillListConfig({ config, onChange }: SkillListConfigProps): JSX.Elemen
         <ul className={styles.skillList} aria-label="Skills">
           {skills.map((skill, idx) => (
             <li key={skill} className={styles.skillItem}>
+              <input
+                type={Boolean(config.multi) ? "checkbox" : "radio"}
+                disabled
+                aria-hidden="true"
+                tabIndex={-1}
+                className={styles.previewCheckbox}
+              />
               <span>{skill}</span>
               <div className={styles.skillActions}>
                 <button
@@ -1179,6 +1215,13 @@ function MultipleChoiceConfig({ config, onChange }: MultipleChoiceConfigProps): 
         <ol className={styles.skillList} aria-label="Options">
           {options.map((opt, idx) => (
             <li key={`${opt}-${idx}`} className={styles.skillItem}>
+              <input
+                type={Boolean(config.allow_multiple) ? "checkbox" : "radio"}
+                disabled
+                aria-hidden="true"
+                tabIndex={-1}
+                className={styles.previewCheckbox}
+              />
               <span>{opt}</span>
               <div className={styles.skillActions}>
                 <button

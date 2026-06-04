@@ -160,6 +160,13 @@ export function NavBar(): JSX.Element {
               Team Formation
             </NavLink>
           </li>
+          {user?.role === "admin" && (
+            <li>
+              <NavLink to="/admin/surveys" className={linkClass}>
+                Survey Approvals
+              </NavLink>
+            </li>
+          )}
         </ul>
         <div className={styles.spacer} />
         <ul className={styles.bottom}>

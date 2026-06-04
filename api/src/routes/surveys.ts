@@ -5,9 +5,12 @@ import { requireAuth } from "../middleware/auth.js";
 import { httpError } from "../middleware/errorHandler.js";
 import {
   addQuestion,
+  approveSurvey,
   createSurvey,
   deleteSurvey,
   deleteQuestion,
+  forkSurvey,
+  getPendingSurveys,
   getSurveyWithQuestions,
   getSurveys,
   reorderQuestions,
@@ -15,6 +18,7 @@ import {
   updateSurvey,
   type Survey,
 } from "../services/surveyService.js";
+import { requireAdmin } from "../middleware/auth.js";
 
 const createSurveySchema = z
   .object({
@@ -175,6 +179,45 @@ export function surveysRouter(db: DB): Router {
       const ownerId = req.session.userId as number;
       deleteQuestion(db, qId, id, ownerId);
       res.status(204).end();
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  // POST /surveys/:id/fork
+  r.post("/surveys/:id/fork", requireAuth, (req, res, next) => {
+    try {
+      const { id } = idParamSchema.parse(req.params);
+      const newOwnerId = req.session.userId as number;
+      const data = forkSurvey(db, id, newOwnerId);
+      res.status(201).json({
+        survey: toPublic(data.survey),
+        questions: data.questions.map((q) => ({
+          ...q,
+          config: JSON.parse(q.config) as unknown,
+        })),
+      });
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  // GET /admin/surveys — pending approval queue
+  r.get("/admin/surveys", requireAdmin(db), (req, res, next) => {
+    try {
+      const surveys = getPendingSurveys(db);
+      res.json({ surveys: surveys.map(toPublic) });
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  // POST /admin/surveys/:id/approve
+  r.post("/admin/surveys/:id/approve", requireAdmin(db), (req, res, next) => {
+    try {
+      const { id } = idParamSchema.parse(req.params);
+      const survey = approveSurvey(db, id);
+      res.json({ survey: toPublic(survey) });
     } catch (err) {
       next(err);
     }

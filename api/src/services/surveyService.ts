@@ -52,7 +52,7 @@ export function getSurveys(db: DB, userId?: number): SurveyWithOwner[] {
       .prepare(
         `SELECT s.*, u.username AS owner_username
          FROM surveys s JOIN users u ON u.id = s.owner_id
-         WHERE s.is_public = 1 OR s.owner_id = ?
+         WHERE (s.is_public = 1 AND s.is_approved = 1) OR s.owner_id = ?
          ORDER BY s.updated_at DESC`,
       )
       .all(userId) as SurveyWithOwner[];
@@ -61,10 +61,55 @@ export function getSurveys(db: DB, userId?: number): SurveyWithOwner[] {
     .prepare(
       `SELECT s.*, u.username AS owner_username
        FROM surveys s JOIN users u ON u.id = s.owner_id
-       WHERE s.is_public = 1
+       WHERE s.is_public = 1 AND s.is_approved = 1
        ORDER BY s.updated_at DESC`,
     )
     .all() as SurveyWithOwner[];
+}
+
+export function getPendingSurveys(db: DB): SurveyWithOwner[] {
+  return db
+    .prepare(
+      `SELECT s.*, u.username AS owner_username
+       FROM surveys s JOIN users u ON u.id = s.owner_id
+       WHERE s.is_public = 1 AND s.is_approved = 0
+       ORDER BY s.updated_at DESC`,
+    )
+    .all() as SurveyWithOwner[];
+}
+
+export function approveSurvey(db: DB, id: number): Survey {
+  const survey = getSurvey(db, id);
+  if (!survey) throw httpError(404, "survey not found");
+  db.prepare("UPDATE surveys SET is_approved = 1, updated_at = unixepoch() WHERE id = ?").run(id);
+  return getSurvey(db, id) as Survey;
+}
+
+export function forkSurvey(db: DB, id: number, newOwnerId: number): SurveyWithQuestions {
+  const source = getSurveyWithQuestions(db, id);
+  if (!source) throw httpError(404, "survey not found");
+
+  const tags = source.survey.tags;
+  const info = db
+    .prepare(
+      `INSERT INTO surveys (owner_id, title, description, is_public, is_approved, tags)
+       VALUES (?, ?, ?, 0, 0, ?)`,
+    )
+    .run(newOwnerId, source.survey.title, source.survey.description, tags);
+  const newSurveyId = Number(info.lastInsertRowid);
+
+  const insert = db.prepare(
+    `INSERT INTO survey_questions (survey_id, sort_order, block_type, prompt, config)
+     VALUES (?, ?, ?, ?, ?)`,
+  );
+  const tx = db.transaction((questions: SurveyQuestion[]) => {
+    for (const q of questions) {
+      insert.run(newSurveyId, q.sort_order, q.block_type, q.prompt, q.config);
+    }
+  });
+  tx(source.questions);
+
+  return getSurveyWithQuestions(db, newSurveyId) as SurveyWithQuestions;
 }
 
 export function getSurvey(db: DB, id: number): Survey | null {

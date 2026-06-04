@@ -13,6 +13,8 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  word-break: break-all;
+  overflow-wrap: anywhere;
   gap: 0.5rem;
   border: 0.0625rem solid var(--border);
   background: var(--bg);

@@ -24,9 +24,7 @@
 .stepperItem {
   flex: 1;
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.625rem 0.875rem;
+  align-items: stretch;
   font-size: 0.875rem;
   color: var(--border);
   border-right: 1px solid var(--border);
@@ -35,6 +33,33 @@
 
 .stepperItem:last-child {
   border-right: none;
+}
+
+.stepperBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: default;
+}
+
+.stepperBtn:not([aria-disabled="true"]) {
+  cursor: pointer;
+}
+
+.stepperBtn:not([aria-disabled="true"]):hover {
+  background: color-mix(in srgb, var(--bright) 8%, transparent);
+}
+
+.stepperActive .stepperBtn,
+.stepperDone .stepperBtn {
+  cursor: pointer;
 }
 
 .stepperActive {
